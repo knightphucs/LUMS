@@ -1,0 +1,36 @@
+@model BookFiltersViewModel
+@{
+    var chipClass = Model.Staff ? "chip chip--rect" : "chip";
+}
+
+<label class="@chipClass">
+    <span class="sr-only">Thể loại</span>
+    <select name="category" data-autosubmit>
+        <option value="">Thể loại</option>
+        @foreach (var c in Model.Options.Categories)
+        {
+            <option value="@c" selected="@(c == Model.Category)">@c</option>
+        }
+    </select>
+</label>
+@if (!Model.Staff)
+{
+    <label class="@chipClass">
+        <span class="sr-only">Tác giả</span>
+        <select name="author" data-autosubmit>
+            <option value="">Tác giả</option>
+            @foreach (var a in Model.Options.Authors)
+            {
+                <option value="@a" selected="@(a == Model.Author)">@a</option>
+            }
+        </select>
+    </label>
+}
+<label class="@chipClass">
+    <span class="sr-only">Tình trạng</span>
+    <select name="status" data-autosubmit>
+        <option value="">Tình trạng</option>
+        <option value="instock" selected="@(Model.Status == "instock")">Còn sách</option>
+        <option value="outofstock" selected="@(Model.Status == "outofstock")">Hết sách</option>
+    </select>
+</label>

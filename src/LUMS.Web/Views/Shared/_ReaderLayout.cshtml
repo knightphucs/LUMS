@@ -1,6 +1,5 @@
 @{
     Layout = "_PublicLayout";
-    var current = $"/{ViewContext.RouteData.Values["controller"]}/{ViewContext.RouteData.Values["action"]}";
 }
 
 <div class="reader-shell">
@@ -13,7 +12,7 @@
             </div>
         </div>
         <nav class="reader-side__nav">
-            <a class="@(current == "/Reader/MyLoans" ? "is-active" : "")" asp-controller="Reader" asp-action="MyLoans">Sách đang mượn</a>
+            <a class="@ViewContext.ActiveClass("Reader", "MyLoans")" asp-controller="Reader" asp-action="MyLoans">Sách đang mượn</a>
             <span class="is-soon" aria-disabled="true">Lịch sử mượn <small>(sắp có)</small></span>
             <span class="is-soon" aria-disabled="true">Đặt trước (Reservation) <small>(sắp có)</small></span>
             <span class="is-soon" aria-disabled="true">Thông tin cá nhân <small>(sắp có)</small></span>

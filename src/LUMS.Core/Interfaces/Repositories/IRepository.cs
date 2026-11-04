@@ -1,4 +1,4 @@
-namespace LUMS.Core.Repositories;
+namespace LUMS.Core.Interfaces.Repositories;
 
 public interface IRepository<T> where T : class
 {

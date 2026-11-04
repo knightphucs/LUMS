@@ -1,6 +1,6 @@
 using LUMS.Core.Dtos;
 using LUMS.Core.Entities;
-using LUMS.Core.Repositories;
+using LUMS.Core.Interfaces.Repositories;
 
 namespace LUMS.Tests.Fakes;
 

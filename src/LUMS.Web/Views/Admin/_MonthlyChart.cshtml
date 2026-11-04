@@ -1,0 +1,15 @@
+@model DashboardViewModel
+
+<section class="panel" aria-labelledby="chart-title">
+    <h2 id="chart-title" class="panel__title">Biểu đồ mượn theo tháng</h2>
+    <div class="chart" role="img" aria-label="Biểu đồ cột số lượt mượn theo tháng">
+        @foreach (var m in Model.Data.MonthlyLoans)
+        {
+            <div class="chart__col">
+                <span class="chart__value">@m.Count</span>
+                <div class="chart__bar" style="height:@(Model.BarPercent(m))%"></div>
+                <span class="chart__label">@($"{m.Month:00}/{m.Year % 100:00}")</span>
+            </div>
+        }
+    </div>
+</section>

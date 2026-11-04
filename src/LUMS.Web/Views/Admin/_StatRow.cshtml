@@ -1,0 +1,20 @@
+@model AdminDashboardDto
+
+<section class="stat-row" aria-label="Chỉ số tổng quan">
+    <div class="stat">
+        <div class="stat__label">Tổng sách đang mượn</div>
+        <div class="stat__value">@Model.ActiveLoans.ToString("N0")</div>
+    </div>
+    <div class="stat">
+        <div class="stat__label">Sách quá hạn chưa trả</div>
+        <div class="stat__value text-danger">@Model.OverdueLoans.ToString("N0")</div>
+    </div>
+    <div class="stat">
+        <div class="stat__label">Tổng tiền phạt đã thu (tháng)</div>
+        <div class="stat__value text-ok">@DisplayText.Money(Model.FinesCollectedThisMonth)</div>
+    </div>
+    <div class="stat">
+        <div class="stat__label">Tổng tài khoản hệ thống</div>
+        <div class="stat__value">@Model.TotalAccounts.ToString("N0")</div>
+    </div>
+</section>

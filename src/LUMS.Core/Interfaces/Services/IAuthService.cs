@@ -1,6 +1,6 @@
 using LUMS.Core.Dtos;
 
-namespace LUMS.Core.Services.Interfaces;
+namespace LUMS.Core.Interfaces.Services;
 
 public interface IAuthService
 {

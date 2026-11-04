@@ -1,6 +1,6 @@
 using LUMS.Core.Entities;
 
-namespace LUMS.Core.Repositories;
+namespace LUMS.Core.Interfaces.Repositories;
 
 public interface ISystemLogRepository : IRepository<SystemLog>
 {

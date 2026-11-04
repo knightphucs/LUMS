@@ -12,8 +12,6 @@ public class BookSearchViewModel
 
     public PagedResult<BookSummaryDto> Result { get; init; } = null!;
 
-    public BookFilterOptionsDto Filters { get; init; } = null!;
-
     public PagerViewModel Pager { get; init; } = null!;
 
     public bool HasFilter =>

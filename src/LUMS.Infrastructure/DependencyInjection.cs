@@ -1,17 +1,17 @@
-using LUMS.Core.Abstractions;
-using LUMS.Core.Repositories;
-using LUMS.Core.Services;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Common;
+using LUMS.Core.Interfaces.Repositories;
 using LUMS.Infrastructure.Data;
 using LUMS.Infrastructure.Repositories;
 using LUMS.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace LUMS.Web.Extensions;
+namespace LUMS.Infrastructure;
 
-public static class ServiceCollectionExtensions
+public static class DependencyInjection
 {
-    public static IServiceCollection AddLumsApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("LumsDb");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -33,13 +33,6 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
-
-        services.AddScoped<IBookService, BookService>();
-        services.AddScoped<ILoanService, LoanService>();
-        services.AddScoped<IReservationService, ReservationService>();
-        services.AddScoped<IDashboardService, DashboardService>();
-        services.AddScoped<IPolicyService, PolicyService>();
-        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

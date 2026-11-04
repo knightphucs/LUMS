@@ -16,7 +16,7 @@ public class ErrorViewModel
     public string Message => Code switch
     {
         404 => "Trang bạn tìm không tồn tại hoặc đã bị gỡ.",
-        403 => "Tài khoản của bạn không có quyền xem trang này.",
+        403 => "Tài khoản của bạn không có quyền xem trang này. Vui lòng đăng nhập với tài khoản phù hợp (Admin / Thủ thư / Độc giả).",
         _ => "Hệ thống gặp sự cố ngoài dự kiến. Vui lòng thử lại sau."
     };
 }

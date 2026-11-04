@@ -1,6 +1,6 @@
 using LUMS.Core.Dtos;
 using LUMS.Core.Exceptions;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Services;
 using LUMS.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +21,6 @@ public class BooksController : Controller
     public async Task<IActionResult> Index(
         string? keyword, string? category, string? author, string? status, int pageNumber = 1, CancellationToken ct = default)
     {
-        var filters = await _books.GetFilterOptionsAsync(ct);
         var result = await _books.SearchAsync(new BookSearchCriteria
         {
             Keyword = keyword,
@@ -38,7 +37,6 @@ public class BooksController : Controller
             Category = category,
             Author = author,
             Status = status,
-            Filters = filters,
             Result = result,
             Pager = new PagerViewModel(
                 result.Page,

@@ -10,98 +10,16 @@
     <div class="alert alert--ok" role="status">@flash</div>
 }
 
-<section class="stat-row" aria-label="Chỉ số tổng quan">
-    <div class="stat">
-        <div class="stat__label">Tổng sách đang mượn</div>
-        <div class="stat__value">@d.ActiveLoans.ToString("N0")</div>
-    </div>
-    <div class="stat">
-        <div class="stat__label">Sách quá hạn chưa trả</div>
-        <div class="stat__value text-danger">@d.OverdueLoans.ToString("N0")</div>
-    </div>
-    <div class="stat">
-        <div class="stat__label">Tổng tiền phạt đã thu (tháng)</div>
-        <div class="stat__value text-ok">@DisplayText.Money(d.FinesCollectedThisMonth)</div>
-    </div>
-    <div class="stat">
-        <div class="stat__label">Tổng tài khoản hệ thống</div>
-        <div class="stat__value">@d.TotalAccounts.ToString("N0")</div>
-    </div>
-</section>
+<partial name="_StatRow" model="d" />
 
 <div class="grid-2">
-    <section class="panel" aria-labelledby="chart-title">
-        <h2 id="chart-title" class="panel__title">Biểu đồ mượn theo tháng</h2>
-        <div class="chart" role="img" aria-label="Biểu đồ cột số lượt mượn theo tháng">
-            @foreach (var m in d.MonthlyLoans)
-            {
-                <div class="chart__col">
-                    <span class="chart__value">@m.Count</span>
-                    <div class="chart__bar" style="height:@(Model.BarPercent(m))%"></div>
-                    <span class="chart__label">@($"{m.Month:00}/{m.Year % 100:00}")</span>
-                </div>
-            }
-        </div>
-    </section>
+    <partial name="_MonthlyChart" model="Model" />
 
-    <section class="panel" aria-labelledby="acc-title">
-        <div class="panel__head">
-            <h2 id="acc-title" class="panel__title">Quản lý tài khoản</h2>
-            <button type="button" class="btn btn--outline btn--sm" data-toast="Tạo tài khoản (UC-03-01) sẽ được bổ sung ở giai đoạn sau.">+ Tạo mới</button>
-        </div>
-        <div class="table-wrap">
-            <table class="table table--compact">
-                <thead><tr><th>Tên</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
-                <tbody>
-                    @foreach (var a in d.RecentAccounts)
-                    {
-                        <tr>
-                            <td>@a.FullName</td>
-                            <td>@DisplayText.RoleName(a.Role)</td>
-                            <td><span class="badge @DisplayText.AccountStatusBadge(a.Status)">@DisplayText.AccountStatusName(a.Status)</span></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </section>
+    <partial name="_RecentAccounts" model="d" />
 </div>
 
 <div class="grid-2">
-    <section class="panel" aria-labelledby="policy-title">
-        <h2 id="policy-title" class="panel__title">Cấu hình quy định</h2>
-
-        @if (ViewData.ModelState.TryGetValue(string.Empty, out var formState) && formState.Errors.Count > 0)
-        {
-            <div class="alert alert--danger" role="alert">
-                @foreach (var error in formState.Errors)
-                {
-                    <div>@error.ErrorMessage</div>
-                }
-            </div>
-        }
-
-        <form method="post" asp-controller="Admin" asp-action="SavePolicy" novalidate>
-            <div class="form-row">
-                <div class="field">
-                    <label asp-for="Policy.MaxLoanDays"></label>
-                    <input asp-for="Policy.MaxLoanDays" type="number" min="1" max="90" inputmode="numeric" />
-                    <span class="field__error" asp-validation-for="Policy.MaxLoanDays"></span>
-                </div>
-                <div class="field">
-                    <label asp-for="Policy.MaxBooksPerReader"></label>
-                    <input asp-for="Policy.MaxBooksPerReader" type="number" min="1" max="20" inputmode="numeric" />
-                    <span class="field__error" asp-validation-for="Policy.MaxBooksPerReader"></span>
-                </div>
-                <div class="field">
-                    <label asp-for="Policy.FinePerDay"></label>
-                    <input asp-for="Policy.FinePerDay" type="number" min="0" step="500" inputmode="numeric" />
-                    <span class="field__error" asp-validation-for="Policy.FinePerDay"></span>
-                </div>
-            </div>
-            <button type="submit" class="btn btn--primary">Lưu cấu hình</button>
-        </form>
-    </section>
+    <partial name="_PolicyForm" model="Model" />
 
     <section class="panel" aria-labelledby="rbac-title">
         <h2 id="rbac-title" class="panel__title">Phân quyền (RBAC)</h2>
@@ -113,21 +31,4 @@
     </section>
 </div>
 
-<section class="panel" aria-labelledby="log-title">
-    <h2 id="log-title" class="panel__title">Nhật ký hệ thống (System Log)</h2>
-    <div class="table-wrap">
-        <table class="table">
-            <thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th></tr></thead>
-            <tbody>
-                @foreach (var log in d.RecentLogs)
-                {
-                    <tr>
-                        <td class="nowrap">@DisplayText.DateTimeText(log.Timestamp)</td>
-                        <td class="nowrap">@(log.AccountRole == Role.DocGia || log.AccountRole == Role.ThuThu ? $"{log.AccountName} ({DisplayText.RoleName(log.AccountRole)})" : log.AccountName)</td>
-                        <td>@log.Action</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</section>
+<partial name="_SystemLog" model="d" />

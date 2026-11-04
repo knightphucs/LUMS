@@ -1,4 +1,3 @@
-@model HomeIndexViewModel
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -26,12 +25,7 @@
 
 <section aria-labelledby="latest-title">
     <h2 id="latest-title" class="section-title">Sách mới cập nhật</h2>
-    <div class="book-grid">
-        @foreach (var book in Model.LatestBooks)
-        {
-            <partial name="_BookCard" model="book" view-data='new ViewDataDictionary(ViewData) { { "Compact", true } }' />
-        }
-    </div>
+    <vc:latest-books take="4" />
 </section>
 
 <section id="gioi-thieu" class="feature-row" aria-label="Tính năng nổi bật">

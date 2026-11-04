@@ -1,7 +1,7 @@
 using LUMS.Core.Dtos;
 using LUMS.Core.Entities;
 
-namespace LUMS.Core.Repositories;
+namespace LUMS.Core.Interfaces.Repositories;
 
 public interface ILoanRepository : IRepository<Loan>
 {

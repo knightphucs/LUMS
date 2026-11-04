@@ -1,5 +1,5 @@
 using LUMS.Core.Dtos;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LUMS.Web.Controllers.Api;

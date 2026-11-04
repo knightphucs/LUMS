@@ -1,0 +1,20 @@
+@model AdminDashboardDto
+
+<section class="panel" aria-labelledby="log-title">
+    <h2 id="log-title" class="panel__title">Nhật ký hệ thống (System Log)</h2>
+    <div class="table-wrap">
+        <table class="table">
+            <thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th></tr></thead>
+            <tbody>
+                @foreach (var log in Model.RecentLogs)
+                {
+                    <tr>
+                        <td class="nowrap">@DisplayText.DateTimeText(log.Timestamp)</td>
+                        <td class="nowrap">@(log.AccountRole == Role.DocGia || log.AccountRole == Role.ThuThu ? $"{log.AccountName} ({DisplayText.RoleName(log.AccountRole)})" : log.AccountName)</td>
+                        <td>@log.Action</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,7 +1,8 @@
 using System.Text.Json.Serialization;
-using LUMS.Core.Abstractions;
+using LUMS.Core;
+using LUMS.Core.Interfaces.Common;
+using LUMS.Infrastructure;
 using LUMS.Infrastructure.Data;
-using LUMS.Web.Extensions;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLumsApplication(builder.Configuration);
+builder.Services
+    .AddCore()
+    .AddInfrastructure(builder.Configuration);
 
 // MVC: Controller (Controllers/) → ViewModel (Models/) → View (Views/).
 // Mọi POST đều phải có token CSRF (form tag helper tự sinh; API đọc header X-CSRF-TOKEN).

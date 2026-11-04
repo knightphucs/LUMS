@@ -1,5 +1,5 @@
 using LUMS.Core.Entities;
-using LUMS.Core.Repositories;
+using LUMS.Core.Interfaces.Repositories;
 using LUMS.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

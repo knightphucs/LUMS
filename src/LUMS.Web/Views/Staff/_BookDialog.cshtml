@@ -1,0 +1,16 @@
+@* Hộp thoại Thêm/Sửa sách — chỉ trang Quản lý kho sách dùng nên đặt cạnh Books.cshtml, không đưa vào Shared. *@
+<dialog id="book-dialog" class="dialog" aria-labelledby="book-dialog-title">
+    <form method="dialog" data-toast-on-submit="Bản demo giao diện: lưu sách (UC-02-03) sẽ được nối với BookService ở giai đoạn sau.">
+        <h2 id="book-dialog-title">Thêm / Sửa thông tin sách</h2>
+        <div class="field"><label for="f-title">Tên sách</label><input id="f-title" type="text" required /></div>
+        <div class="field"><label for="f-author">Tác giả</label><input id="f-author" type="text" required /></div>
+        <div class="field"><label for="f-cat">Thể loại</label><input id="f-cat" type="text" /></div>
+        <div class="field"><label for="f-isbn">Mã ISBN</label><input id="f-isbn" type="text" /></div>
+        <div class="field"><label for="f-shelf">Vị trí kệ (Shelf location)</label><input id="f-shelf" type="text" /></div>
+        <div class="field"><label for="f-copies">Số lượng bản sao (Copies)</label><input id="f-copies" type="number" min="1" /></div>
+        <div class="dialog__actions">
+            <button type="submit" class="btn btn--primary">Lưu (Save)</button>
+            <button type="button" class="btn btn--outline-muted" data-close-dialog>Hủy</button>
+        </div>
+    </form>
+</dialog>

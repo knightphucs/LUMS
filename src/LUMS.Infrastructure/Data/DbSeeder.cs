@@ -1,6 +1,6 @@
-using LUMS.Core.Abstractions;
 using LUMS.Core.Entities;
 using LUMS.Core.Enums;
+using LUMS.Core.Interfaces.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace LUMS.Infrastructure.Data;

@@ -2,8 +2,8 @@ using LUMS.Core.Dtos;
 using LUMS.Core.Entities;
 using LUMS.Core.Enums;
 using LUMS.Core.Exceptions;
-using LUMS.Core.Repositories;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Repositories;
+using LUMS.Core.Interfaces.Services;
 
 namespace LUMS.Core.Services;
 

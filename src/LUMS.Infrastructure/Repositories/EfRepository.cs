@@ -1,4 +1,4 @@
-using LUMS.Core.Repositories;
+using LUMS.Core.Interfaces.Repositories;
 using LUMS.Infrastructure.Data;
 
 namespace LUMS.Infrastructure.Repositories;

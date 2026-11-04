@@ -1,0 +1,8 @@
+@model IReadOnlyList<BookSummaryDto>
+
+<div class="book-grid">
+    @foreach (var book in Model)
+    {
+        <partial name="_BookCard" model="book" view-data='new ViewDataDictionary(ViewData) { { "Compact", true } }' />
+    }
+</div>

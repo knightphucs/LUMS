@@ -87,7 +87,7 @@ LUMS.sln
 
 Phụ thuộc chỉ đi một chiều: **Web → Core ← Infrastructure** (Core không biết ai).
 
-Quy ước đặt file: **mỗi lớp/interface một file, tên file = tên lớp** (VD `BookService.cs`). Interface của Service tách riêng vào `Services/Interfaces/`. Ngoại lệ có chủ đích: các enum gom trong `Enums/Enums.cs`, exception trong `Exceptions/Exceptions.cs`, DTO gom theo nghiệp vụ trong `Dtos/*Dtos.cs`.
+Quy ước đặt file: **mỗi lớp/interface một file, tên file = tên lớp** (VD `BookService.cs`). Mọi interface của Core gom vào `Interfaces/` (`Common/`, `Repositories/`, `Services/`), lớp cài đặt nằm riêng. Ngoại lệ có chủ đích: các enum gom trong `Enums/Enums.cs`, exception trong `Exceptions/Exceptions.cs`, DTO gom theo nghiệp vụ trong `Dtos/*Dtos.cs`.
 
 #### Cấu trúc thư mục chi tiết
 
@@ -97,6 +97,7 @@ LUMS-Demo/
 ├─ Directory.Build.props                 ← cấu hình chung: net8.0, nullable, implicit usings
 │
 ├─ src/LUMS.Core/                        ← MODEL (nghiệp vụ) — không phụ thuộc EF Core / ASP.NET
+│  ├─ DependencyInjection.cs                AddCore(): đăng ký các Service
 │  ├─ Entities/                          ← thực thể = bảng trong ERD, có quy tắc nghiệp vụ
 │  │  ├─ Account.cs                         TAI_KHOAN
 │  │  ├─ BookTitle.cs                       DAU_SACH
@@ -113,35 +114,37 @@ LUMS-Demo/
 │  │  ├─ LoanDtos.cs                        LoanDto, RenewLoanResult, ReservationDto
 │  │  ├─ AdminDtos.cs                       AdminDashboardDto, PolicyDto, UpdatePolicyRequest…
 │  │  └─ AuthDtos.cs                        LoginResult, AuthenticatedUser
-│  ├─ Abstractions/                      ← interface hạ tầng mà Core cần (Dependency Inversion)
-│  │  ├─ IClock.cs
-│  │  ├─ IPasswordHasher.cs
-│  │  └─ IUnitOfWork.cs
-│  ├─ Repositories/                      ← interface Repository (cài đặt nằm ở Infrastructure)
-│  │  ├─ IRepository.cs                     interface chung: GetById / Add / Update / Remove
-│  │  ├─ IBookRepository.cs
-│  │  ├─ ILoanRepository.cs
-│  │  ├─ IReservationRepository.cs
-│  │  ├─ IAccountRepository.cs
-│  │  ├─ IFineRepository.cs
-│  │  ├─ IPolicyRepository.cs
-│  │  └─ ISystemLogRepository.cs
+│  ├─ Interfaces/                        ← TẤT CẢ interface của Core (Dependency Inversion) — cài đặt nằm ở Infrastructure / Services
+│  │  ├─ Common/                         ← interface hạ tầng mà Core cần
+│  │  │  ├─ IClock.cs
+│  │  │  ├─ IPasswordHasher.cs
+│  │  │  └─ IUnitOfWork.cs
+│  │  ├─ Repositories/                   ← interface Repository (cài đặt: Infrastructure/Repositories)
+│  │  │  ├─ IRepository.cs                  interface chung: GetById / Add / Update / Remove
+│  │  │  ├─ IBookRepository.cs
+│  │  │  ├─ ILoanRepository.cs
+│  │  │  ├─ IReservationRepository.cs
+│  │  │  ├─ IAccountRepository.cs
+│  │  │  ├─ IFineRepository.cs
+│  │  │  ├─ IPolicyRepository.cs
+│  │  │  └─ ISystemLogRepository.cs
+│  │  └─ Services/                       ← interface Service — Controller chỉ biết tới các interface này
+│  │     ├─ IAuthService.cs
+│  │     ├─ IBookService.cs
+│  │     ├─ ILoanService.cs
+│  │     ├─ IReservationService.cs
+│  │     ├─ IPolicyService.cs
+│  │     └─ IDashboardService.cs
 │  └─ Services/                          ← nghiệp vụ theo use case (lớp cài đặt)
 │     ├─ AuthService.cs                     UC-00-01 Đăng nhập
 │     ├─ BookService.cs                     UC-01-01/02 Tra cứu, chi tiết sách
 │     ├─ LoanService.cs                     UC-01-03/04 Sách đang mượn, gia hạn
 │     ├─ ReservationService.cs              UC-01-05 Danh sách đặt trước
 │     ├─ PolicyService.cs                   UC-03-02 Cấu hình quy định
-│     ├─ DashboardService.cs                UC-03-03/04 Thống kê, nhật ký
-│     └─ Interfaces/                     ← interface của Service — Controller chỉ biết tới các interface này
-│        ├─ IAuthService.cs
-│        ├─ IBookService.cs
-│        ├─ ILoanService.cs
-│        ├─ IReservationService.cs
-│        ├─ IPolicyService.cs
-│        └─ IDashboardService.cs
+│     └─ DashboardService.cs                UC-03-03/04 Thống kê, nhật ký
 │
 ├─ src/LUMS.Infrastructure/              ← cài đặt các interface của Core bằng EF Core + SQL Server
+│  ├─ DependencyInjection.cs                AddInfrastructure(): đăng ký DbContext, Repository, UnitOfWork, IClock, IPasswordHasher
 │  ├─ Data/
 │  │  ├─ LumsDbContext.cs                   DbContext, 8 DbSet
 │  │  ├─ DbSeeder.cs                        dữ liệu mẫu cho demo
@@ -172,8 +175,6 @@ LUMS-Demo/
 │  ├─ Program.cs                            cấu hình MVC, cookie auth, CSRF, Swagger (chỉ Development), seed CSDL
 │  ├─ appsettings.json / appsettings.Development.json   chuỗi kết nối, bật tự tạo CSDL khi Development
 │  ├─ Properties/launchSettings.json        profile chạy (http://localhost:5080)
-│  ├─ Extensions/
-│  │  └─ ServiceCollectionExtensions.cs     AddLumsApplication(): nơi duy nhất "nối dây" DI
 │  ├─ Controllers/                       ← CONTROLLER trang web (trả về HTML)
 │  │  ├─ HomeController.cs                  /, /Error
 │  │  ├─ BooksController.cs                 /Books, /Books/Details/{id}
@@ -186,14 +187,17 @@ LUMS-Demo/
 │  │     ├─ BooksApiController.cs           /api/books…
 │  │     └─ LoansApiController.cs           /api/loans/mine, /api/loans/{id}/renew   [Độc giả]
 │  ├─ Models/                            ← ViewModel: dữ liệu đã gom sẵn cho từng View
-│  │  ├─ HomeIndexViewModel.cs              Home/Index
 │  │  ├─ ErrorViewModel.cs                  Home/Error
 │  │  ├─ BookSearchViewModel.cs             Books/Index và Staff/Books
+│  │  ├─ BookFiltersViewModel.cs            View Component BookFilters
 │  │  ├─ PagerViewModel.cs                  partial _Pager
 │  │  ├─ LoginViewModel.cs                  Account/Login (có kiểm tra dữ liệu nhập)
 │  │  ├─ MyLoansViewModel.cs                Reader/MyLoans
 │  │  ├─ DashboardViewModel.cs              Admin/Dashboard
 │  │  └─ PolicyForm.cs                      form cấu hình quy định trên Dashboard
+│  ├─ ViewComponents/                    ← khối giao diện TỰ lấy dữ liệu từ Service (Controller không cần nạp sẵn)
+│  │  ├─ BookFiltersViewComponent.cs        <vc:book-filters /> ô lọc Thể loại/Tác giả/Tình trạng (Books/Index, Staff/Books)
+│  │  └─ LatestBooksViewComponent.cs        <vc:latest-books take="4" /> lưới "Sách mới cập nhật" (Home/Index)
 │  ├─ Views/                             ← VIEW: Views/<Controller>/<Action>.cshtml
 │  │  ├─ _ViewImports.cshtml                using + tag helper dùng chung
 │  │  ├─ _ViewStart.cshtml                  layout mặc định: _PublicLayout
@@ -201,9 +205,10 @@ LUMS-Demo/
 │  │  ├─ Books/       Index.cshtml, Details.cshtml
 │  │  ├─ Account/     Login.cshtml, Forbidden.cshtml, _ViewStart.cshtml (→ _AuthLayout)
 │  │  ├─ Reader/      MyLoans.cshtml, _ViewStart.cshtml (→ _ReaderLayout)
-│  │  ├─ Staff/       Books.cshtml, _ViewStart.cshtml (→ _StaffLayout)
+│  │  ├─ Staff/       Books.cshtml, _BookDialog.cshtml (partial riêng của trang), _ViewStart.cshtml (→ _StaffLayout)
 │  │  ├─ Admin/       Dashboard.cshtml, _ViewStart.cshtml (→ _StaffLayout)
-│  │  └─ Shared/
+│  │  │               + partial riêng của Dashboard: _StatRow, _MonthlyChart, _RecentAccounts, _PolicyForm, _SystemLog
+│  │  └─ Shared/                         ← dùng chung cho nhiều trang
 │  │     ├─ _Head.cshtml                    phần <head> dùng chung cho cả 3 layout (title, font, CSS)
 │  │     ├─ _PublicLayout.cshtml            khung trang công khai: thanh trên, footer, tab di động
 │  │     ├─ _ReaderLayout.cshtml            lồng trong Public, thêm menu bên của Độc giả
@@ -211,14 +216,21 @@ LUMS-Demo/
 │  │     ├─ _AuthLayout.cshtml              khung trang đăng nhập
 │  │     ├─ _UserMenu.cshtml                menu tài khoản (partial)
 │  │     ├─ _BookCard.cshtml                thẻ sách (partial)
-│  │     └─ _Pager.cshtml                   phân trang (partial)
+│  │     ├─ _Pager.cshtml                   phân trang (partial)
+│  │     ├─ _FormErrors.cshtml              lỗi chung của form (Login, cấu hình quy định)
+│  │     ├─ _StatusPage.cshtml              trang 403/404/500 (Account/Forbidden, Home/Error)
+│  │     ├─ _Scripts.cshtml                 vùng toast + site.js, đặt cuối <body> của cả 3 layout
+│  │     └─ Components/                  ← View của View Component: Components/<Tên>/Default.cshtml
+│  │        ├─ BookFilters/Default.cshtml
+│  │        └─ LatestBooks/Default.cshtml
 │  ├─ Security/                          ← phân quyền và thông tin người đăng nhập
 │  │  ├─ AppRoles.cs                        hằng số vai trò: Reader, Librarian, Admin, Staff
 │  │  ├─ LumsClaimTypes.cs                  claim riêng (mã SV/NV)
 │  │  ├─ LumsClaimsExtensions.cs            User.GetAccountId(), GetFullName(), IsStaff()…
 │  │  └─ RoleHome.cs                        trang chuyển tới sau đăng nhập theo vai trò
 │  ├─ Presentation/
-│  │  └─ DisplayText.cs                     đổi enum → chữ tiếng Việt + màu huy hiệu, định dạng tiền/ngày
+│  │  ├─ DisplayText.cs                     đổi enum → chữ tiếng Việt + màu huy hiệu, định dạng tiền/ngày
+│  │  └─ NavExtensions.cs                   ViewContext.ActiveClass("Books") → "is-active" cho menu trong layout
 │  └─ wwwroot/
 │     ├─ css/site.css                       giao diện theo Figma
 │     └─ js/site.js                         toast, tab, hộp thoại, nút Gia hạn (gọi API)
@@ -237,9 +249,10 @@ LUMS-Demo/
 
 **Muốn tìm gì thì mở đâu:**
 - Thêm/sửa một **màn hình**: Controller trong `Web/Controllers/` → ViewModel trong `Web/Models/` → View trong `Web/Views/<Controller>/`.
-- Thêm/sửa **quy tắc nghiệp vụ**: `Core/Services/` (khai báo hàm mới ở `Core/Services/Interfaces/`) hoặc trong Entity (`Core/Entities/`).
-- Thêm/sửa **câu truy vấn CSDL**: interface ở `Core/Repositories/`, cài đặt ở `Infrastructure/Repositories/`.
-- Đăng ký lớp mới vào DI: `Web/Extensions/ServiceCollectionExtensions.cs`.
+- Khối giao diện **dùng lại**: chỉ hiển thị dữ liệu được truyền vào → partial `_Xxx.cshtml` (trong `Views/Shared/` nếu nhiều trang dùng, cạnh View nếu chỉ một trang dùng); cần **tự lấy dữ liệu** từ Service → View Component trong `Web/ViewComponents/`.
+- Thêm/sửa **quy tắc nghiệp vụ**: `Core/Services/` (khai báo hàm mới ở `Core/Interfaces/Services/`) hoặc trong Entity (`Core/Entities/`).
+- Thêm/sửa **câu truy vấn CSDL**: interface ở `Core/Interfaces/Repositories/`, cài đặt ở `Infrastructure/Repositories/`.
+- Đăng ký lớp mới vào DI: Service → `Core/DependencyInjection.cs` (`AddCore`); Repository/hạ tầng → `Infrastructure/DependencyInjection.cs` (`AddInfrastructure`).
 
 | Thành phần MVC | Trong dự án |
 |---|---|
@@ -265,7 +278,7 @@ Luồng một request: URL `/{controller}/{action}/{id?}` (VD `/Books/Details/3`
 | **MVC** | Xem bảng trên. Controller chỉ nhận request, gọi Service, đưa ViewModel cho View — không có quy tắc nghiệp vụ. |
 | **Repository** | `IRepository<T>`, `IBookRepository`, `ILoanRepository`… (Core) ↔ `EfRepository<T>`, `BookRepository`… (Infrastructure). Có thêm **Unit of Work** (`IUnitOfWork`) để mỗi lần gia hạn ghi khoản mượn + nhật ký trong **một giao dịch** (NFR-04). |
 | **Dependency Injection** | Mọi lớp nhận phụ thuộc qua constructor, ví dụ `LoanService(ILoanRepository, IReservationRepository, …)`. Container DI khởi tạo — không có `new Repository()` trong mã nghiệp vụ. |
-| **Dependency Inversion** | Interface do **Core** định nghĩa, **Infrastructure** cài đặt. Nơi duy nhất "nối dây" là `Extensions/ServiceCollectionExtensions.cs` (`AddLumsApplication`). Hệ quả có thể chứng minh bằng `dotnet test`: `LoanServiceTests` chạy `LoanService` với Repository giả, không cần CSDL. |
+| **Dependency Inversion** | Interface do **Core** định nghĩa, **Infrastructure** cài đặt. Mỗi tầng tự đăng ký lớp của mình trong `DependencyInjection.cs` (`AddCore()`, `AddInfrastructure()`); `Program.cs` (composition root) gọi cả hai. Hệ quả có thể chứng minh bằng `dotnet test`: `LoanServiceTests` chạy `LoanService` với Repository giả, không cần CSDL. |
 
 Quy tắc nghiệp vụ cũng nằm trong Entity (rich domain model): `Loan.Renew()` kiểm tra quá hạn / có người đặt trước — đúng ví dụ ở Chuyên đề 3 mục 2.5.3.
 

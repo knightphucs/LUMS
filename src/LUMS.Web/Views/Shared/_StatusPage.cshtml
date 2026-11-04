@@ -1,0 +1,12 @@
+@model ErrorViewModel
+
+<section class="status-page">
+    <div class="status-page__code" aria-hidden="true">@Model.Code</div>
+    <h1>@Model.Heading</h1>
+    <p>@Model.Message</p>
+    @if (Model.RequestId is not null)
+    {
+        <p class="muted">Mã yêu cầu: <code>@Model.RequestId</code></p>
+    }
+    <a class="btn btn--primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+</section>

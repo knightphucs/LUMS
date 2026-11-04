@@ -1,0 +1,29 @@
+@* Nhận cả DashboardViewModel để tên ô vẫn là "Policy.X" — khớp tham số của AdminController.SavePolicy. *@
+@model DashboardViewModel
+
+<section class="panel" aria-labelledby="policy-title">
+    <h2 id="policy-title" class="panel__title">Cấu hình quy định</h2>
+
+    <partial name="_FormErrors" />
+
+    <form method="post" asp-controller="Admin" asp-action="SavePolicy" novalidate>
+        <div class="form-row">
+            <div class="field">
+                <label asp-for="Policy.MaxLoanDays"></label>
+                <input asp-for="Policy.MaxLoanDays" type="number" min="1" max="90" inputmode="numeric" />
+                <span class="field__error" asp-validation-for="Policy.MaxLoanDays"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Policy.MaxBooksPerReader"></label>
+                <input asp-for="Policy.MaxBooksPerReader" type="number" min="1" max="20" inputmode="numeric" />
+                <span class="field__error" asp-validation-for="Policy.MaxBooksPerReader"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Policy.FinePerDay"></label>
+                <input asp-for="Policy.FinePerDay" type="number" min="0" step="500" inputmode="numeric" />
+                <span class="field__error" asp-validation-for="Policy.FinePerDay"></span>
+            </div>
+        </div>
+        <button type="submit" class="btn btn--primary">Lưu cấu hình</button>
+    </form>
+</section>

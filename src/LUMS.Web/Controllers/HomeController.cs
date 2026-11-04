@@ -1,4 +1,3 @@
-using LUMS.Core.Services.Interfaces;
 using LUMS.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,22 +5,8 @@ namespace LUMS.Web.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly IBookService _books;
-
-    public HomeController(IBookService books)
-    {
-        _books = books;
-    }
-
-    // GET /
-    public async Task<IActionResult> Index(CancellationToken ct)
-    {
-        var model = new HomeIndexViewModel
-        {
-            LatestBooks = await _books.GetLatestAsync(4, ct)
-        };
-        return View(model);
-    }
+    // GET / — lưới "Sách mới cập nhật" do View Component LatestBooks tự nạp
+    public IActionResult Index() => View();
 
     // GET /Error?code=404 — được gọi lại bởi UseExceptionHandler / UseStatusCodePagesWithReExecute
     [Route("/Error")]

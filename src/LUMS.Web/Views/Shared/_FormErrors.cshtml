@@ -1,0 +1,10 @@
+@* Lỗi chung của form (ModelState với key rỗng). Lỗi của từng ô vẫn dùng asp-validation-for. *@
+@if (ViewData.ModelState.TryGetValue(string.Empty, out var formState) && formState.Errors.Count > 0)
+{
+    <div class="alert alert--danger" role="alert">
+        @foreach (var error in formState.Errors)
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}

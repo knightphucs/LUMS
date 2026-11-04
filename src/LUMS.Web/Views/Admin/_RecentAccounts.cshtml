@@ -1,0 +1,23 @@
+@model AdminDashboardDto
+
+<section class="panel" aria-labelledby="acc-title">
+    <div class="panel__head">
+        <h2 id="acc-title" class="panel__title">Quản lý tài khoản</h2>
+        <button type="button" class="btn btn--outline btn--sm" data-toast="Tạo tài khoản (UC-03-01) sẽ được bổ sung ở giai đoạn sau.">+ Tạo mới</button>
+    </div>
+    <div class="table-wrap">
+        <table class="table table--compact">
+            <thead><tr><th>Tên</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                @foreach (var a in Model.RecentAccounts)
+                {
+                    <tr>
+                        <td>@a.FullName</td>
+                        <td>@DisplayText.RoleName(a.Role)</td>
+                        <td><span class="badge @DisplayText.AccountStatusBadge(a.Status)">@DisplayText.AccountStatusName(a.Status)</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

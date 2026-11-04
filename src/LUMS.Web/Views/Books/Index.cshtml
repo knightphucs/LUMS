@@ -14,34 +14,7 @@
     </div>
 
     <div class="chips">
-        <label class="chip">
-            <span class="sr-only">Thể loại</span>
-            <select name="category" data-autosubmit>
-                <option value="">Thể loại</option>
-                @foreach (var c in Model.Filters.Categories)
-                {
-                    <option value="@c" selected="@(c == Model.Category)">@c</option>
-                }
-            </select>
-        </label>
-        <label class="chip">
-            <span class="sr-only">Tác giả</span>
-            <select name="author" data-autosubmit>
-                <option value="">Tác giả</option>
-                @foreach (var a in Model.Filters.Authors)
-                {
-                    <option value="@a" selected="@(a == Model.Author)">@a</option>
-                }
-            </select>
-        </label>
-        <label class="chip">
-            <span class="sr-only">Tình trạng</span>
-            <select name="status" data-autosubmit>
-                <option value="">Tình trạng</option>
-                <option value="instock" selected="@(Model.Status == "instock")">Còn sách</option>
-                <option value="outofstock" selected="@(Model.Status == "outofstock")">Hết sách</option>
-            </select>
-        </label>
+        <vc:book-filters category="@Model.Category" author="@Model.Author" status="@Model.Status" />
         @if (Model.HasFilter)
         {
             <a class="chip chip--link" asp-controller="Books" asp-action="Index">Xóa bộ lọc</a>

@@ -1,5 +1,5 @@
 using LUMS.Core.Dtos;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Services;
 using LUMS.Web.Models;
 using LUMS.Web.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +23,6 @@ public class StaffController : Controller
     public async Task<IActionResult> Books(
         string? keyword, string? category, string? status, int pageNumber = 1, CancellationToken ct = default)
     {
-        var filters = await _books.GetFilterOptionsAsync(ct);
         var result = await _books.SearchAsync(new BookSearchCriteria
         {
             Keyword = keyword,
@@ -38,7 +37,6 @@ public class StaffController : Controller
             Keyword = keyword,
             Category = category,
             Status = status,
-            Filters = filters,
             Result = result,
             Pager = new PagerViewModel(
                 result.Page,

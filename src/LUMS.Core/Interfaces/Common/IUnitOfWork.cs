@@ -1,4 +1,4 @@
-namespace LUMS.Core.Abstractions;
+namespace LUMS.Core.Interfaces.Common;
 
 public interface IUnitOfWork
 {

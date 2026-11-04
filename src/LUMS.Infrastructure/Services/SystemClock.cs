@@ -1,4 +1,4 @@
-using LUMS.Core.Abstractions;
+using LUMS.Core.Interfaces.Common;
 
 namespace LUMS.Infrastructure.Services;
 

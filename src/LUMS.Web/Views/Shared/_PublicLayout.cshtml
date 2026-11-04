@@ -10,13 +10,9 @@
         <div class="topbar__inner">
             <a class="brand" asp-controller="Home" asp-action="Index">LUMS Library</a>
 
-            @{
-                var current = $"/{ViewContext.RouteData.Values["controller"]}/{ViewContext.RouteData.Values["action"]}";
-                string Active(string prefix) => current.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "is-active" : string.Empty;
-            }
             <nav class="topnav" aria-label="Điều hướng chính">
-                <a class="@(current == "/Home/Index" ? "is-active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a>
-                <a class="@Active("/Books")" asp-controller="Books" asp-action="Index">Danh mục sách</a>
+                <a class="@ViewContext.ActiveClass("Home", "Index")" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a class="@ViewContext.ActiveClass("Books")" asp-controller="Books" asp-action="Index">Danh mục sách</a>
                 <a href="/#gioi-thieu">Giới thiệu</a>
             </nav>
 
@@ -39,15 +35,13 @@
         </div>
     </footer>
 
-    <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
-
     <nav class="tabbar" aria-label="Điều hướng di động">
-        <a class="@(current == "/Home/Index" ? "is-active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a>
-        <a class="@Active("/Books")" asp-controller="Books" asp-action="Index">Tìm kiếm</a>
-        <a class="@Active("/Reader")" asp-controller="Reader" asp-action="MyLoans">Mượn của tôi</a>
-        <a class="@Active("/Account")" asp-controller="Account" asp-action="Login">Tài khoản</a>
+        <a class="@ViewContext.ActiveClass("Home", "Index")" asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <a class="@ViewContext.ActiveClass("Books")" asp-controller="Books" asp-action="Index">Tìm kiếm</a>
+        <a class="@ViewContext.ActiveClass("Reader")" asp-controller="Reader" asp-action="MyLoans">Mượn của tôi</a>
+        <a class="@ViewContext.ActiveClass("Account")" asp-controller="Account" asp-action="Login">Tài khoản</a>
     </nav>
 
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <partial name="_Scripts" />
 </body>
 </html>

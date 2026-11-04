@@ -1,6 +1,6 @@
 using LUMS.Core.Dtos;
-using LUMS.Core.Repositories;
-using LUMS.Core.Services.Interfaces;
+using LUMS.Core.Interfaces.Repositories;
+using LUMS.Core.Interfaces.Services;
 
 namespace LUMS.Core.Services;
 

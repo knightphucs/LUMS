@@ -1,5 +1,5 @@
-using LUMS.Core.Abstractions;
 using LUMS.Core.Entities;
+using LUMS.Core.Interfaces.Common;
 using Microsoft.AspNetCore.Identity;
 
 namespace LUMS.Infrastructure.Services;
