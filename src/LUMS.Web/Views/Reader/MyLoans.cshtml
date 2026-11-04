@@ -1,0 +1,87 @@
+@model MyLoansViewModel
+@{
+    ViewData["Title"] = "Sách đang mượn";
+}
+
+<h1 class="page-title">Sách đang mượn (@Model.Loans.Count cuốn)</h1>
+
+@if (Model.TotalFine > 0)
+{
+    <div class="alert alert--danger" role="alert">
+        Bạn đang có khoản phạt: @DisplayText.Money(Model.TotalFine) - vui lòng thanh toán tại quầy thủ thư.
+    </div>
+}
+
+@if (Model.Loans.Count == 0)
+{
+    <div class="empty">
+        <p><strong>Bạn chưa mượn cuốn sách nào.</strong></p>
+        <p><a asp-controller="Books" asp-action="Index">Tra cứu sách</a> để bắt đầu.</p>
+    </div>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="table table--loans">
+            <thead>
+                <tr>
+                    <th><span class="sr-only">Ảnh</span></th>
+                    <th>Tên sách</th>
+                    <th>Ngày mượn</th>
+                    <th>Ngày hết hạn</th>
+                    <th>Tiền phạt</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model.Loans)
+                {
+                    <tr data-loan-row="@loan.Id">
+                        <td><span class="thumb" aria-hidden="true"></span></td>
+                        <td>
+                            @loan.BookTitle
+                            <div class="muted small">@loan.CopyId</div>
+                        </td>
+                        <td>@DisplayText.Date(loan.BorrowedDate)</td>
+                        <td data-due class="@(loan.IsOverdue ? "text-danger" : "")">@DisplayText.Date(loan.DueDate)</td>
+                        <td data-fine>@DisplayText.Money(loan.OverdueFine)</td>
+                        <td>
+                            @if (loan.CanRenew)
+                            {
+                                <button type="button" class="btn btn--outline btn--sm" data-renew="@loan.Id">Gia hạn</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn--disabled btn--sm" disabled title="@loan.RenewBlockedReason">Gia hạn</button>
+                                <div class="muted small">@loan.RenewBlockedReason</div>
+                            }
+                            @if (loan.RenewalCount > 0)
+                            {
+                                <div class="muted small" data-renewal-count>Đã gia hạn @loan.RenewalCount lần</div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2 class="section-title">Sách đã đặt trước (Reservation)</h2>
+
+@if (Model.Reservations.Count == 0)
+{
+    <p class="muted">Bạn chưa đặt trước cuốn sách nào.</p>
+}
+else
+{
+    <ul class="list-rows">
+        @foreach (var r in Model.Reservations)
+        {
+            <li>
+                <span>@r.BookTitle</span>
+                <span class="badge @DisplayText.ReservationBadge(r.Status)">@DisplayText.ReservationName(r.Status, r.QueuePosition)</span>
+            </li>
+        }
+    </ul>
+}

@@ -1,0 +1,37 @@
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var role = User.GetRoleName();
+    <details class="usermenu">
+        <summary class="usermenu__summary">
+            <span class="avatar" aria-hidden="true">@User.GetInitials()</span>
+            <span class="usermenu__text">
+                <span class="usermenu__name">@User.GetFullName()</span>
+                @if (User.IsStaff())
+                {
+                    <span class="badge @DisplayText.RoleBadge(role)">@DisplayText.RoleName(role)</span>
+                }
+            </span>
+        </summary>
+        <div class="usermenu__panel">
+            @if (User.IsInRole(AppRoles.Reader))
+            {
+                <a asp-controller="Reader" asp-action="MyLoans">Sách đang mượn</a>
+            }
+            @if (User.IsInRole(AppRoles.Admin))
+            {
+                <a asp-controller="Admin" asp-action="Dashboard">Bảng điều khiển</a>
+            }
+            @if (User.IsStaff())
+            {
+                <a asp-controller="Staff" asp-action="Books">Quản lý kho sách</a>
+            }
+            <form method="post" asp-controller="Account" asp-action="Logout">
+                <button type="submit" class="usermenu__logout">Đăng xuất</button>
+            </form>
+        </div>
+    </details>
+}
+else
+{
+    <a class="btn btn--outline btn--sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+}

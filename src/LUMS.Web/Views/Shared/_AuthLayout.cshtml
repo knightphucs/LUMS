@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="body--auth">
+    <div class="auth">
+        <section class="auth__brand">
+            <a class="auth__logo" asp-controller="Home" asp-action="Index">LUMS Library</a>
+            <div>
+                <h2>Hệ thống Quản lý Thư viện Đại học</h2>
+                <p>Tra cứu, mượn, trả sách dễ dàng mọi lúc mọi nơi.</p>
+            </div>
+            <span></span>
+        </section>
+
+        <main id="main" class="auth__form">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

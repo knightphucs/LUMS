@@ -1,0 +1,26 @@
+@{
+    Layout = "_PublicLayout";
+    var current = $"/{ViewContext.RouteData.Values["controller"]}/{ViewContext.RouteData.Values["action"]}";
+}
+
+<div class="reader-shell">
+    <aside class="reader-side" aria-label="Menu Độc giả">
+        <div class="reader-side__profile">
+            <span class="avatar avatar--lg" aria-hidden="true">@User.GetInitials()</span>
+            <div>
+                <div class="reader-side__name">@User.GetFullName()</div>
+                <div class="reader-side__code">MSSV: @User.GetCode()</div>
+            </div>
+        </div>
+        <nav class="reader-side__nav">
+            <a class="@(current == "/Reader/MyLoans" ? "is-active" : "")" asp-controller="Reader" asp-action="MyLoans">Sách đang mượn</a>
+            <span class="is-soon" aria-disabled="true">Lịch sử mượn <small>(sắp có)</small></span>
+            <span class="is-soon" aria-disabled="true">Đặt trước (Reservation) <small>(sắp có)</small></span>
+            <span class="is-soon" aria-disabled="true">Thông tin cá nhân <small>(sắp có)</small></span>
+        </nav>
+    </aside>
+
+    <section class="reader-content">
+        @RenderBody()
+    </section>
+</div>

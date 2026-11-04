@@ -1,0 +1,50 @@
+@model PagerViewModel
+@if (Model.TotalPages > 1)
+{
+    string PageUrl(int pageNumber)
+    {
+        var query = new Dictionary<string, string?>();
+        foreach (var (key, value) in Model.Query)
+        {
+            if (value is not null && !string.IsNullOrWhiteSpace(value.ToString()))
+            {
+                query[key] = value.ToString();
+            }
+        }
+
+        query["pageNumber"] = pageNumber.ToString();
+        return Model.PagePath + "?" + string.Join("&", query.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value ?? string.Empty)}"));
+    }
+
+    <nav class="pager" aria-label="Phân trang">
+        @if (Model.Page > 1)
+        {
+            <a href="@PageUrl(Model.Page - 1)" aria-label="Trang trước">‹</a>
+        }
+        else
+        {
+            <span class="is-disabled" aria-hidden="true">‹</span>
+        }
+
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            if (i == Model.Page)
+            {
+                <span class="is-current" aria-current="page">@i</span>
+            }
+            else
+            {
+                <a href="@PageUrl(i)">@i</a>
+            }
+        }
+
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a href="@PageUrl(Model.Page + 1)" aria-label="Trang sau">›</a>
+        }
+        else
+        {
+            <span class="is-disabled" aria-hidden="true">›</span>
+        }
+    </nav>
+}

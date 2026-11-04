@@ -1,0 +1,71 @@
+@model BookSearchViewModel
+@{
+    ViewData["Title"] = "Tra cứu sách";
+}
+
+<h1 class="page-title">Tra cứu sách (OPAC)</h1>
+<p class="page-sub">Tìm kiếm theo tên sách, tác giả, thể loại hoặc ISBN</p>
+
+<form method="get" class="opac-form" role="search">
+    <div class="opac-form__row">
+        <label class="sr-only" for="keyword">Từ khóa</label>
+        <input id="keyword" name="keyword" type="search" value="@Model.Keyword" placeholder="Nhập tên sách, tác giả, ISBN..." autocomplete="off" />
+        <button class="btn btn--outline-strong" type="submit">Tìm kiếm</button>
+    </div>
+
+    <div class="chips">
+        <label class="chip">
+            <span class="sr-only">Thể loại</span>
+            <select name="category" data-autosubmit>
+                <option value="">Thể loại</option>
+                @foreach (var c in Model.Filters.Categories)
+                {
+                    <option value="@c" selected="@(c == Model.Category)">@c</option>
+                }
+            </select>
+        </label>
+        <label class="chip">
+            <span class="sr-only">Tác giả</span>
+            <select name="author" data-autosubmit>
+                <option value="">Tác giả</option>
+                @foreach (var a in Model.Filters.Authors)
+                {
+                    <option value="@a" selected="@(a == Model.Author)">@a</option>
+                }
+            </select>
+        </label>
+        <label class="chip">
+            <span class="sr-only">Tình trạng</span>
+            <select name="status" data-autosubmit>
+                <option value="">Tình trạng</option>
+                <option value="instock" selected="@(Model.Status == "instock")">Còn sách</option>
+                <option value="outofstock" selected="@(Model.Status == "outofstock")">Hết sách</option>
+            </select>
+        </label>
+        @if (Model.HasFilter)
+        {
+            <a class="chip chip--link" asp-controller="Books" asp-action="Index">Xóa bộ lọc</a>
+        }
+    </div>
+</form>
+
+<h2 class="section-title section-title--sm">Kết quả tìm kiếm (@Model.Result.TotalCount sách)</h2>
+
+@if (Model.Result.Items.Count == 0)
+{
+    <div class="empty">
+        <p><strong>Không tìm thấy sách phù hợp.</strong></p>
+        <p>Hãy thử từ khóa ngắn hơn hoặc <a asp-controller="Books" asp-action="Index">xóa bộ lọc</a>.</p>
+    </div>
+}
+else
+{
+    <div class="book-grid">
+        @foreach (var book in Model.Result.Items)
+        {
+            <partial name="_BookCard" model="book" />
+        }
+    </div>
+
+    <partial name="_Pager" model="Model.Pager" />
+}

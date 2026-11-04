@@ -1,0 +1,50 @@
+@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<section class="hero">
+    <div class="hero__text">
+        <h1>Hệ thống Quản lý Thư viện Đại học</h1>
+        <p>Tra cứu đầu sách, theo dõi sách đang mượn và gia hạn trực tuyến ngay trên website — không cần đến quầy khi chưa cần thiết.</p>
+        <div class="hero__actions">
+            <a class="btn btn--primary" asp-controller="Books" asp-action="Index">Tra cứu sách ngay</a>
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <a class="btn btn--outline" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            }
+        </div>
+    </div>
+    <div class="hero__art" role="img" aria-label="Ảnh minh họa thư viện">[Ảnh minh họa]</div>
+</section>
+
+<form class="quick-search" method="get" asp-controller="Books" asp-action="Index" role="search">
+    <label class="sr-only" for="quick-q">Tìm nhanh</label>
+    <input id="quick-q" name="keyword" type="search" placeholder="Tìm nhanh: nhập tên sách, tác giả, ISBN..." autocomplete="off" />
+    <button class="btn btn--primary" type="submit">Tìm kiếm</button>
+</form>
+
+<section aria-labelledby="latest-title">
+    <h2 id="latest-title" class="section-title">Sách mới cập nhật</h2>
+    <div class="book-grid">
+        @foreach (var book in Model.LatestBooks)
+        {
+            <partial name="_BookCard" model="book" view-data='new ViewDataDictionary(ViewData) { { "Compact", true } }' />
+        }
+    </div>
+</section>
+
+<section id="gioi-thieu" class="feature-row" aria-label="Tính năng nổi bật">
+    <div class="feature">
+        <h3>Tra cứu dễ dàng</h3>
+        <p>Tìm sách nhanh theo tên, tác giả, thể loại.</p>
+    </div>
+    <div class="feature">
+        <h3>Gia hạn trực tuyến</h3>
+        <p>Tự gia hạn sách ngay trên hệ thống.</p>
+    </div>
+    <div class="feature">
+        <h3>Đặt trước sách</h3>
+        <p>Giữ chỗ sách đang được mượn.</p>
+    </div>
+</section>

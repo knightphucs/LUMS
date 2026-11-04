@@ -1,0 +1,95 @@
+@model BookDetailDto
+@{
+    var book = Model;
+    ViewData["Title"] = book.Title;
+}
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+    <span aria-hidden="true">&gt;</span>
+    <a asp-controller="Books" asp-action="Index">Danh mục sách</a>
+    <span aria-hidden="true">&gt;</span>
+    <span aria-current="page">@book.Title</span>
+</nav>
+
+<div class="detail">
+    <div class="detail__cover-col">
+        <div class="detail__cover">
+            @if (!string.IsNullOrEmpty(book.CoverImage))
+            {
+                <img src="@book.CoverImage" alt="Bìa sách @book.Title" />
+            }
+            else
+            {
+                <span>[Ảnh bìa sách]</span>
+            }
+            <span class="badge detail__badge @DisplayText.AvailabilityBadge(book.Availability)">@DisplayText.AvailabilityName(book.Availability)</span>
+        </div>
+        <p class="detail__facts">Vị trí kệ: @book.Shelf</p>
+        <p class="detail__facts">Mã ISBN: @book.Isbn</p>
+    </div>
+
+    <div class="detail__info">
+        <h1>@book.Title</h1>
+        <p class="detail__meta">Tác giả: @book.Author <span class="sep" aria-hidden="true">|</span> Thể loại: @book.Category</p>
+        <hr />
+
+        <h2 class="section-title section-title--sm">Mô tả sách</h2>
+        <p class="detail__desc">@(string.IsNullOrWhiteSpace(book.Description) ? "Chưa có mô tả cho đầu sách này." : book.Description)</p>
+
+        <div class="detail__actions">
+            <button type="button" class="btn btn--accent" data-toast="Đặt trước (UC-01-05) sẽ được bổ sung ở giai đoạn sau.">Đặt trước (Reservation)</button>
+            <button type="button" class="btn btn--outline-muted" data-toast="Chức năng yêu thích chưa nằm trong phạm vi bản demo.">Thêm yêu thích</button>
+        </div>
+
+        <div class="callout">
+            Tình trạng:
+            @if (book.AvailableCopies > 0)
+            {
+                <text>Còn @book.AvailableCopies/@book.TotalCopies bản sao có thể mượn</text>
+            }
+            else
+            {
+                <text>Hết sách (0/@book.TotalCopies bản sao) — bạn có thể đặt trước để được giữ chỗ</text>
+            }
+        </div>
+    </div>
+</div>
+
+<section class="tabs" data-tabs>
+    <div class="tabs__list" role="tablist">
+        <button class="tabs__tab is-active" role="tab" id="tab-copies" aria-selected="true" aria-controls="panel-copies" type="button">Bản sao có sẵn</button>
+        <button class="tabs__tab" role="tab" id="tab-info" aria-selected="false" aria-controls="panel-info" type="button" tabindex="-1">Thông tin chi tiết</button>
+    </div>
+
+    <div class="tabs__panel" role="tabpanel" id="panel-copies" aria-labelledby="tab-copies">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr><th>Mã bản sao (Copy ID)</th><th>Vị trí kệ</th><th>Tình trạng</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var copy in book.Copies)
+                    {
+                        <tr>
+                            <td>@copy.Id</td>
+                            <td>@copy.Shelf</td>
+                            <td><span class="badge @DisplayText.CopyStatusBadge(copy.Status)">@DisplayText.CopyStatusName(copy.Status)</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tabs__panel" role="tabpanel" id="panel-info" aria-labelledby="tab-info" hidden>
+        <dl class="info-list">
+            <dt>Tên sách</dt><dd>@book.Title</dd>
+            <dt>Tác giả</dt><dd>@book.Author</dd>
+            <dt>Thể loại</dt><dd>@book.Category</dd>
+            <dt>ISBN</dt><dd>@book.Isbn</dd>
+            <dt>Vị trí kệ mặc định</dt><dd>@book.Shelf</dd>
+            <dt>Số bản sao</dt><dd>@book.TotalCopies</dd>
+        </dl>
+    </div>
+</section>

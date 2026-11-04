@@ -1,0 +1,11 @@
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<section class="status-page">
+    <div class="status-page__code" aria-hidden="true">403</div>
+    <h1>Không có quyền truy cập</h1>
+    <p>Tài khoản của bạn không có quyền xem trang này.<br />Vui lòng đăng nhập với tài khoản phù hợp (Admin / Thủ thư / Độc giả).</p>
+    <a class="btn btn--primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+</section>

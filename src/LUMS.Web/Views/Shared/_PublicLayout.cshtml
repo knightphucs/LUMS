@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" asp-controller="Home" asp-action="Index">LUMS Library</a>
+
+            @{
+                var current = $"/{ViewContext.RouteData.Values["controller"]}/{ViewContext.RouteData.Values["action"]}";
+                string Active(string prefix) => current.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "is-active" : string.Empty;
+            }
+            <nav class="topnav" aria-label="Điều hướng chính">
+                <a class="@(current == "/Home/Index" ? "is-active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a class="@Active("/Books")" asp-controller="Books" asp-action="Index">Danh mục sách</a>
+                <a href="/#gioi-thieu">Giới thiệu</a>
+            </nav>
+
+            <div class="topbar__actions">
+                <a class="icon-btn" asp-controller="Books" asp-action="Index" aria-label="Tra cứu sách" title="Tra cứu sách">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                </a>
+                <partial name="_UserMenu" />
+            </div>
+        </div>
+    </header>
+
+    <main id="main" class="page">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="footer__inner">
+            <span>© @DateTime.Now.Year LUMS Library — Hệ thống Quản lý Thư viện Đại học (bản demo, Nhóm 14)</span>
+        </div>
+    </footer>
+
+    <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+    <nav class="tabbar" aria-label="Điều hướng di động">
+        <a class="@(current == "/Home/Index" ? "is-active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <a class="@Active("/Books")" asp-controller="Books" asp-action="Index">Tìm kiếm</a>
+        <a class="@Active("/Reader")" asp-controller="Reader" asp-action="MyLoans">Mượn của tôi</a>
+        <a class="@Active("/Account")" asp-controller="Account" asp-action="Login">Tài khoản</a>
+    </nav>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>
