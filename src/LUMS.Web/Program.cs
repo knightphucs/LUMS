@@ -5,6 +5,7 @@ using LUMS.Web.Extensions;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,7 +122,7 @@ if (app.Configuration.GetValue<bool>("Database:AutoCreateAndSeed"))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<LumsDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(
         db,
         scope.ServiceProvider.GetRequiredService<IPasswordHasher>(),
