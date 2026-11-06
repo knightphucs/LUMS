@@ -74,4 +74,13 @@ public class BookRepository : EfRepository<BookTitle>, IBookRepository
 
     public async Task<IReadOnlyList<string>> GetAuthorsAsync(CancellationToken ct = default) =>
         await Db.BookTitles.AsNoTracking().Select(b => b.Author).Distinct().OrderBy(x => x).ToListAsync(ct);
+
+    public Task<BookTitle?> GetByIsbnAsync(string isbn, CancellationToken ct = default) =>
+        Db.BookTitles.AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Isbn.Replace("-", "").Replace(" ", "") == isbn, ct);
+
+    public Task<BookTitle?> GetWithCopiesForUpdateAsync(int id, CancellationToken ct = default) =>
+        Db.BookTitles
+            .Include(b => b.Copies)
+            .FirstOrDefaultAsync(b => b.Id == id, ct);
 }
