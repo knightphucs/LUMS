@@ -1,4 +1,5 @@
 using LUMS.Core.Dtos;
+using LUMS.Core.Exceptions;
 using LUMS.Core.Interfaces.Services;
 using LUMS.Web.Models;
 using LUMS.Web.Security;
@@ -50,5 +51,23 @@ public class StaffController : Controller
                 })
         };
         return View(model);
+    }
+
+    // POST /Staff/CreateBook  (FR-02-03) — form gửi các trường của CreateBookRequest.
+    [HttpPost]
+    public async Task<IActionResult> CreateBook(CreateBookRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var id = await _books.CreateBookAsync(request, ct);
+            TempData["Flash"] = $"Đã thêm đầu sách #{id} \"{request.Title.Trim()}\" với {request.CopyCount} bản sao.";
+            return RedirectToAction(nameof(Books));
+        }
+        catch (DomainException ex)
+        {
+            // Gồm cả DuplicateIsbnException: thông báo đã chứa mã đầu sách cũ.
+            TempData["Error"] = ex.Message;
+            return RedirectToAction(nameof(Books));
+        }
     }
 }

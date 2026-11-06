@@ -66,3 +66,20 @@ public record BookDetailDto(
     IReadOnlyList<CopyDto> Copies);
 
 public record BookFilterOptionsDto(IReadOnlyList<string> Categories, IReadOnlyList<string> Authors);
+
+/// <summary>
+/// Dữ liệu thủ thư nhập khi thêm đầu sách mới (FR-02-03).
+/// ShelfLocation được gán cho cả BookTitle.DefaultShelf lẫn Copy.Shelf của từng bản sao.
+/// Là class (không phải positional record) để MVC model binding đọc được từ form.
+/// </summary>
+public class CreateBookRequest
+{
+    public const int MaxCopyCount = 100;
+
+    public string Title { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string Isbn { get; set; } = string.Empty;
+    public string ShelfLocation { get; set; } = string.Empty;
+    public int CopyCount { get; set; }
+}
