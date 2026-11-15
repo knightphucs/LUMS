@@ -22,4 +22,18 @@ public interface IBookService
     /// </summary>
     /// <returns>Mã các bản sao vừa tạo.</returns>
     Task<IReadOnlyList<string>> AddCopiesAsync(int bookId, int count, CancellationToken ct = default);
+
+    /// <summary>
+    /// Sửa Tên sách, Tác giả, Thể loại, ISBN, Vị trí kệ của đầu sách (FR-02-03).
+    /// Không tìm thấy → NotFoundException; sai đầu vào → DomainException;
+    /// ISBN mới trùng ISBN của đầu sách khác → DuplicateIsbnException.
+    /// </summary>
+    Task UpdateBookAsync(int id, UpdateBookRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gợi ý gộp khi thêm sách trùng ISBN: trả thông tin đầu sách đang dùng ISBN này
+    /// (null nếu chưa có). "Đồng ý gộp" thì gọi AddCopiesAsync(BookId, số bản sao).
+    /// ISBN sai định dạng → DomainException.
+    /// </summary>
+    Task<MergeSuggestionDto?> GetMergeSuggestionAsync(string isbn, CancellationToken ct = default);
 }

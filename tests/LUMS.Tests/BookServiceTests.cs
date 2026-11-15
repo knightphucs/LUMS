@@ -223,4 +223,119 @@ public class BookServiceTests
 
         Assert.Equal(0, _uow.SaveCount);
     }
+
+    // ---------- UpdateBookAsync ----------
+
+    private static UpdateBookRequest ValidUpdate(Action<UpdateBookRequest>? change = null)
+    {
+        var request = new UpdateBookRequest
+        {
+            Title = "  Lập trình C# Nâng cao  ",
+            Author = "Trần Văn K",
+            Category = "Công nghệ thông tin",
+            Isbn = "978-604-01-2345",
+            ShelfLocation = "D-07"
+        };
+        change?.Invoke(request);
+        return request;
+    }
+
+    [Fact]
+    public async Task UpdateBook_Valid_UpdatesFieldsMovesDefaultShelfCopiesAndSavesOnce()
+    {
+        var book = AddExistingBook(1, "978-604-01-2345", "LUMS-CS101-001", "LUMS-CS101-002");
+        book.Copies.First(c => c.Id == "LUMS-CS101-002").Shelf = "KHO-01"; // bản sao đã xếp kệ riêng
+
+        await CreateSut().UpdateBookAsync(1, ValidUpdate(r => r.Isbn = "978-604-01-7777"));
+
+        Assert.Equal("Lập trình C# Nâng cao", book.Title);
+        Assert.Equal("Trần Văn K", book.Author);
+        Assert.Equal("978-604-01-7777", book.Isbn);
+        Assert.Equal("D-07", book.DefaultShelf);
+        Assert.Equal("D-07", book.Copies.Single(c => c.Id == "LUMS-CS101-001").Shelf);
+        Assert.Equal("KHO-01", book.Copies.Single(c => c.Id == "LUMS-CS101-002").Shelf);
+        Assert.Equal(1, _uow.SaveCount);
+    }
+
+    [Fact]
+    public async Task UpdateBook_SameIsbnWrittenDifferently_IsNotTreatedAsDuplicate()
+    {
+        AddExistingBook(1, "978-604-01-2345");
+
+        await CreateSut().UpdateBookAsync(1, ValidUpdate(r => r.Isbn = "978604012345"));
+
+        Assert.Equal(1, _uow.SaveCount);
+    }
+
+    [Fact]
+    public async Task UpdateBook_IsbnOfAnotherBook_ThrowsDuplicateIsbnAndDoesNotChange()
+    {
+        var book = AddExistingBook(1, "978-604-01-2345");
+        AddExistingBook(2, "978-604-01-2346");
+
+        var ex = await Assert.ThrowsAsync<DuplicateIsbnException>(
+            () => CreateSut().UpdateBookAsync(1, ValidUpdate(r => r.Isbn = "9786040123-46")));
+
+        Assert.Equal(2, ex.ExistingBookId);
+        Assert.Equal("978-604-01-2345", book.Isbn);
+        Assert.Equal("Sách có sẵn", book.Title);
+        Assert.Equal(0, _uow.SaveCount);
+    }
+
+    [Theory]
+    [InlineData("", "Trần Văn K", "978-604-01-2345")]
+    [InlineData("Tên sách", "  ", "978-604-01-2345")]
+    [InlineData("Tên sách", "Trần Văn K", "12345")]
+    public async Task UpdateBook_InvalidInput_ThrowsDomainException(string title, string author, string isbn)
+    {
+        var book = AddExistingBook(1, "978-604-01-2345");
+
+        await Assert.ThrowsAsync<DomainException>(() => CreateSut().UpdateBookAsync(1, ValidUpdate(r =>
+        {
+            r.Title = title;
+            r.Author = author;
+            r.Isbn = isbn;
+        })));
+
+        Assert.Equal("Sách có sẵn", book.Title);
+        Assert.Equal(0, _uow.SaveCount);
+    }
+
+    [Fact]
+    public async Task UpdateBook_BookMissing_ThrowsNotFound()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => CreateSut().UpdateBookAsync(404, ValidUpdate()));
+
+        Assert.Equal(0, _uow.SaveCount);
+    }
+
+    // ---------- GetMergeSuggestionAsync ----------
+
+    [Fact]
+    public async Task GetMergeSuggestion_ExistingIsbn_ReturnsBookTitleAndCopyCount()
+    {
+        AddExistingBook(7, "978-604-01-2345", "LUMS-CS101-001", "LUMS-CS101-002", "LUMS-CS101-003");
+
+        var suggestion = await CreateSut().GetMergeSuggestionAsync("978604012345");
+
+        Assert.NotNull(suggestion);
+        Assert.Equal(new MergeSuggestionDto(7, "Sách có sẵn", "978-604-01-2345", 3), suggestion);
+        Assert.Equal(0, _uow.SaveCount);
+    }
+
+    [Fact]
+    public async Task GetMergeSuggestion_UnknownIsbn_ReturnsNull()
+    {
+        AddExistingBook(7, "978-604-01-2345");
+
+        Assert.Null(await CreateSut().GetMergeSuggestionAsync("978-604-01-9999-1"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("978-604-ABC-123")]
+    public async Task GetMergeSuggestion_InvalidIsbn_ThrowsDomainException(string isbn)
+    {
+        await Assert.ThrowsAsync<DomainException>(() => CreateSut().GetMergeSuggestionAsync(isbn));
+    }
 }

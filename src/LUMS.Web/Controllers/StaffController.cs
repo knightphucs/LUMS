@@ -70,4 +70,38 @@ public class StaffController : Controller
             return RedirectToAction(nameof(Books));
         }
     }
+
+    // POST /Staff/UpdateBook  (FR-02-03) — form gửi id + các trường của UpdateBookRequest.
+    [HttpPost]
+    public async Task<IActionResult> UpdateBook(int id, UpdateBookRequest request, CancellationToken ct)
+    {
+        try
+        {
+            await _books.UpdateBookAsync(id, request, ct);
+            TempData["Flash"] = $"Đã cập nhật đầu sách #{id} \"{request.Title.Trim()}\".";
+        }
+        catch (Exception ex) when (ex is DomainException or NotFoundException)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Books));
+    }
+
+    // POST /Staff/MergeCopies  (FR-02-03) — "Đồng ý gộp" khi thêm sách trùng ISBN: thêm bản sao vào đầu sách cũ.
+    [HttpPost]
+    public async Task<IActionResult> MergeCopies(int bookId, int copyCount, CancellationToken ct)
+    {
+        try
+        {
+            var created = await _books.AddCopiesAsync(bookId, copyCount, ct);
+            TempData["Flash"] = $"Đã gộp thêm {created.Count} bản sao vào đầu sách #{bookId} ({created[0]} … {created[^1]}).";
+        }
+        catch (Exception ex) when (ex is DomainException or NotFoundException)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Books));
+    }
 }
