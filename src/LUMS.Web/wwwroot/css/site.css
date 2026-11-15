@@ -289,6 +289,16 @@ hr { border: 0; border-top: 1px solid var(--c-border); margin: var(--s2) 0; }
 
 .empty { text-align: center; padding: var(--s5) var(--s2); background: var(--c-bg); border-radius: var(--radius-lg); color: var(--c-muted); }
 .empty strong { color: var(--c-text); }
+.empty p + p { margin-top: 4px; }
+.empty__action { margin-top: var(--s2); }
+
+/* OPAC trên điện thoại (< 768px): lưới 1 cột; ô tìm + chip lọc không tràn ngang ở 375px. */
+@media (max-width: 767.98px) {
+    .book-grid.book-grid--opac { grid-template-columns: 1fr; }
+    .opac-form__row input { min-width: 0; width: 100%; }
+    .opac-form .chips .chip { max-width: 100%; }
+    .opac-form .chip select { max-width: calc(100vw - 96px); text-overflow: ellipsis; }
+}
 
 .pager { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: var(--s3); font-size: 12px; }
 .pager a, .pager span {
