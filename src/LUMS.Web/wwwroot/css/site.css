@@ -402,6 +402,10 @@ hr { border: 0; border-top: 1px solid var(--c-border); margin: var(--s2) 0; }
 .dialog::backdrop { background: rgba(17, 24, 39, .55); }
 .dialog h2 { font-size: 15px; font-weight: 500; margin-bottom: var(--s2); }
 .dialog__actions { display: flex; gap: var(--s2); margin-top: var(--s3); }
+.dialog [hidden] { display: none; }
+.dialog p { font-size: 13px; margin-bottom: var(--s1); }
+.dialog .alert { margin-top: 0; }
+.table__actions { white-space: nowrap; }
 
 .body--auth { background: var(--c-surface); }
 .auth { display: grid; grid-template-columns: 43% 1fr; min-height: 100vh; }
