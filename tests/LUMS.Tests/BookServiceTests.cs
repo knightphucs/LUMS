@@ -338,4 +338,123 @@ public class BookServiceTests
     {
         await Assert.ThrowsAsync<DomainException>(() => CreateSut().GetMergeSuggestionAsync(isbn));
     }
+
+    // ---------- SearchAsync (FR-01-01) ----------
+    // Lưu ý: phần lọc thật (LIKE theo tên/tác giả/ISBN, thể loại, còn/hết) chạy trong EF Core ở
+    // BookRepository nên không kiểm được bằng FakeBookRepository. Các test dưới chỉ kiểm phần logic
+    // của BookService: chuẩn hóa tham số, mức tình trạng, tổng trang, kết quả rỗng.
+
+    private void AddBooksWithAvailable(int count, int availableCopies = 2)
+    {
+        for (var i = 1; i <= count; i++)
+        {
+            var book = new BookTitle { Id = i, Title = $"Sách {i:000}", Author = "Tác giả", Category = "CNTT", Isbn = $"978604{i:000000}" };
+            for (var c = 1; c <= availableCopies; c++)
+            {
+                book.Copies.Add(new Copy { Id = $"LUMS-T{i}-{c:000}", Status = CopyStatus.SanSang });
+            }
+
+            _books.Items.Add(book);
+        }
+    }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(-5, 1)]
+    [InlineData(3, 3)]
+    public async Task Search_PageBelowOne_IsNormalizedToFirstPage(int page, int expected)
+    {
+        AddBooksWithAvailable(30);
+
+        var result = await CreateSut().SearchAsync(new BookSearchCriteria { Page = page, PageSize = 10 });
+
+        Assert.Equal(expected, result.Page);
+        Assert.Equal(10, result.Items.Count);
+    }
+
+    [Fact]
+    public async Task Search_PageSizeAboveMax_IsCappedAtMaxPageSize()
+    {
+        AddBooksWithAvailable(60);
+
+        var result = await CreateSut().SearchAsync(new BookSearchCriteria { PageSize = 500 });
+
+        Assert.Equal(BookSearchCriteria.MaxPageSize, result.PageSize);
+        Assert.Equal(50, result.Items.Count);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task Search_PageSizeBelowOne_UsesDefaultPageSize(int pageSize)
+    {
+        AddBooksWithAvailable(20);
+        var defaultPageSize = new BookSearchCriteria().PageSize;
+
+        var result = await CreateSut().SearchAsync(new BookSearchCriteria { PageSize = pageSize });
+
+        Assert.Equal(defaultPageSize, result.PageSize);
+        Assert.Equal(defaultPageSize, result.Items.Count);
+    }
+
+    [Fact]
+    public async Task Search_WhitespaceFilters_AreNormalizedToNullAndTrimmed()
+    {
+        AddBooksWithAvailable(3);
+        var criteria = new BookSearchCriteria { Keyword = "   ", Category = "\t", Author = "  Tác giả  " };
+
+        var result = await CreateSut().SearchAsync(criteria);
+
+        Assert.Null(criteria.Keyword);
+        Assert.Null(criteria.Category);
+        Assert.Equal("Tác giả", criteria.Author);
+        Assert.Equal(3, result.TotalCount); // khoảng trắng không biến thành điều kiện lọc
+    }
+
+    [Theory]
+    [InlineData(0, AvailabilityLevel.OutOfStock)]
+    [InlineData(1, AvailabilityLevel.Low)]
+    [InlineData(2, AvailabilityLevel.Available)]
+    [InlineData(5, AvailabilityLevel.Available)]
+    public async Task Search_AvailableCopies_MapToAvailabilityLevel(int available, AvailabilityLevel expected)
+    {
+        var book = AddExistingBook(1, "978-604-01-2345");
+        for (var i = 1; i <= available; i++)
+        {
+            book.Copies.Add(new Copy { Id = $"LUMS-CS101-{i:000}", Status = CopyStatus.SanSang });
+        }
+        book.Copies.Add(new Copy { Id = "LUMS-CS101-900", Status = CopyStatus.DangDuocMuon }); // bản đang mượn không tính
+
+        var item = Assert.Single((await CreateSut().SearchAsync(new BookSearchCriteria())).Items);
+
+        Assert.Equal(expected, item.Availability);
+        Assert.Equal(available, item.AvailableCopies);
+        Assert.Equal(available + 1, item.TotalCopies);
+    }
+
+    [Theory]
+    [InlineData(21, 10, 3)]
+    [InlineData(20, 10, 2)]
+    [InlineData(1, 8, 1)]
+    public async Task Search_TotalPages_IsCeilingOfTotalOverPageSize(int total, int pageSize, int expectedPages)
+    {
+        AddBooksWithAvailable(total);
+
+        var result = await CreateSut().SearchAsync(new BookSearchCriteria { PageSize = pageSize });
+
+        Assert.Equal(total, result.TotalCount);
+        Assert.Equal(expectedPages, result.TotalPages);
+    }
+
+    [Fact]
+    public async Task Search_NoMatch_ReturnsEmptyListAndZeroPages()
+    {
+        AddBooksWithAvailable(5);
+
+        var result = await CreateSut().SearchAsync(new BookSearchCriteria { Keyword = "không-có-sách-này" });
+
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+        Assert.Equal(0, result.TotalPages);
+    }
 }
