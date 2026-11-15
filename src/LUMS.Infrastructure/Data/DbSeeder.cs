@@ -1,6 +1,7 @@
 using LUMS.Core.Entities;
 using LUMS.Core.Enums;
 using LUMS.Core.Interfaces.Common;
+using LUMS.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace LUMS.Infrastructure.Data;
@@ -8,6 +9,9 @@ namespace LUMS.Infrastructure.Data;
 public static class DbSeeder
 {
     public const string DemoPassword = "Lums@12345";
+
+    /// <summary>Số đầu sách sinh thêm để kiểm thử tìm kiếm/phân trang với dữ liệu lớn (TECH-01).</summary>
+    public const int GeneratedBookCount = 500;
 
     public static async Task SeedAsync(LumsDbContext db, IPasswordHasher hasher, IClock clock, CancellationToken ct = default)
     {
@@ -111,6 +115,11 @@ public static class DbSeeder
             "Hồi quy, phân loại, phân cụm và đánh giá mô hình học máy.");
 
         db.BookTitles.AddRange(books);
+        await db.SaveChangesAsync(ct);
+
+        // Kho sách sinh tự động: tách riêng khỏi `books` để các khoản mượn/đặt chỗ mẫu bên dưới
+        // vẫn chỉ dùng 12 đầu sách mẫu ở trên.
+        db.BookTitles.AddRange(GenerateCatalogBooks(now, GeneratedBookCount));
         await db.SaveChangesAsync(ct);
 
         var copyById = books.SelectMany(b => b.Copies).ToDictionary(c => c.Id);
@@ -218,5 +227,124 @@ public static class DbSeeder
             new SystemLog { AccountId = librarian.Id, Action = "Thêm sách mới: Hệ điều hành (CS310)", RelatedObject = "BookTitle", Timestamp = now.AddHours(-22) });
 
         await db.SaveChangesAsync(ct);
+    }
+
+    private static readonly (string Category, string ShelfZone, string[] Subjects)[] CatalogCategories =
+    {
+        ("Công nghệ thông tin", "A", new[]
+        {
+            "Lập trình Python", "Lập trình Java", "Kiến trúc máy tính", "Điện toán đám mây", "Phát triển ứng dụng di động",
+            "Khai phá dữ liệu", "Kiểm thử phần mềm", "Đồ họa máy tính", "Hệ quản trị cơ sở dữ liệu", "Lập trình hướng đối tượng"
+        }),
+        ("Toán học", "C", new[]
+        {
+            "Giải tích 1", "Giải tích 2", "Đại số tuyến tính", "Xác suất thống kê", "Phương pháp tính",
+            "Quy hoạch tuyến tính", "Lý thuyết đồ thị", "Toán cao cấp", "Hình học giải tích", "Phương trình vi phân"
+        }),
+        ("Kinh tế", "D", new[]
+        {
+            "Kinh tế vi mô", "Kinh tế vĩ mô", "Nguyên lý kế toán", "Quản trị học", "Marketing căn bản",
+            "Tài chính doanh nghiệp", "Thương mại điện tử", "Quản trị dự án", "Kinh tế lượng", "Luật kinh tế"
+        }),
+        ("Ngoại ngữ", "E", new[]
+        {
+            "Tiếng Anh giao tiếp", "Ngữ pháp tiếng Anh", "Tiếng Anh chuyên ngành CNTT", "Luyện thi IELTS", "Luyện thi TOEIC",
+            "Tiếng Nhật sơ cấp", "Tiếng Hàn sơ cấp", "Tiếng Trung cơ bản", "Tiếng Pháp cơ bản", "Kỹ năng viết tiếng Anh"
+        }),
+        ("Văn học", "F", new[]
+        {
+            "Văn học Việt Nam hiện đại", "Văn học dân gian", "Thơ ca Việt Nam", "Văn học Pháp", "Văn học Nga",
+            "Lý luận văn học", "Truyện ngắn chọn lọc", "Tiểu thuyết lịch sử", "Văn học thiếu nhi", "Phê bình văn học"
+        }),
+        ("Khoa học tự nhiên", "G", new[]
+        {
+            "Vật lý đại cương", "Hóa học đại cương", "Sinh học tế bào", "Cơ học lượng tử", "Điện từ học",
+            "Hóa hữu cơ", "Di truyền học", "Thiên văn học", "Khoa học môi trường", "Nhiệt động lực học"
+        }),
+        ("Kỹ năng mềm", "H", new[]
+        {
+            "Kỹ năng thuyết trình", "Kỹ năng làm việc nhóm", "Quản lý thời gian", "Tư duy phản biện", "Giao tiếp hiệu quả",
+            "Kỹ năng lãnh đạo", "Giải quyết vấn đề", "Viết báo cáo khoa học", "Kỹ năng phỏng vấn", "Tư duy sáng tạo"
+        })
+    };
+
+    private static readonly string[] TitlePrefixes =
+        { "Giáo trình", "Nhập môn", "Cơ sở", "Bài tập", "Thực hành", "Cẩm nang", "Chuyên đề", "Tuyển tập" };
+
+    private static readonly string[] FamilyNames = { "Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Đặng", "Bùi", "Đỗ" };
+    private static readonly string[] MiddleNames = { "Văn", "Thị", "Minh", "Thanh", "Quốc", "Hữu", "Ngọc" };
+    private static readonly string[] GivenNames =
+        { "An", "Bình", "Châu", "Dũng", "Giang", "Hà", "Khánh", "Lan", "Long", "Mai", "Nam", "Phúc", "Quân", "Sơn", "Thảo", "Tuấn", "Vy" };
+
+    /// <summary>
+    /// Sinh <paramref name="count"/> đầu sách (tối đa 560 tổ hợp tên không trùng, 9999 ISBN) một cách tất định:
+    /// 7 thể loại, ~40 tác giả, 1–5 bản sao SanSang mỗi sách, ngày tạo rải đều 40–739 ngày trước
+    /// (cũ hơn 12 sách mẫu để mục "Sách mới" ở trang chủ không đổi).
+    /// ISBN-13 dạng 978-604-90-NNNN-K với chữ số kiểm K đúng chuẩn; mã bản sao theo đúng quy tắc của
+    /// BookService.CreateBookAsync: LUMS-{ISBN đã chuẩn hóa}-{i:000}.
+    /// </summary>
+    internal static List<BookTitle> GenerateCatalogBooks(DateTime now, int count)
+    {
+        var maxCount = CatalogCategories.Length * 10 * TitlePrefixes.Length;
+        if (count > maxCount) throw new ArgumentOutOfRangeException(nameof(count), $"Tối đa {maxCount} đầu sách.");
+
+        var authors = Enumerable.Range(0, 40)
+            .Select(k => $"{FamilyNames[k % FamilyNames.Length]} {MiddleNames[k % MiddleNames.Length]} {GivenNames[(k * 5) % GivenNames.Length]}")
+            .Distinct()
+            .ToList();
+
+        var result = new List<BookTitle>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var (category, zone, subjects) = CatalogCategories[i % CatalogCategories.Length];
+            var subjectIndex = i / CatalogCategories.Length % subjects.Length;
+            var prefix = TitlePrefixes[i / (CatalogCategories.Length * subjects.Length) % TitlePrefixes.Length];
+            var title = $"{prefix} {subjects[subjectIndex]}";
+
+            var isbn = Isbn13("97860490" + (i + 1).ToString("0000"));
+            var code = BookService.NormalizeIsbn(isbn);
+            var shelf = $"{zone}-{20 + subjectIndex * 3 + i % 3:00}";
+            var createdAt = now.AddDays(-(40 + i * 7 % 700)).AddHours(-(i % 9));
+
+            var book = new BookTitle
+            {
+                Title = title,
+                Author = authors[i * 7 % authors.Count],
+                Category = category,
+                Isbn = isbn,
+                Description = $"{title} — tài liệu tham khảo nhóm {category} (dữ liệu mẫu).",
+                DefaultShelf = shelf,
+                CreatedAt = createdAt
+            };
+
+            var copies = 1 + i % 5;
+            for (var c = 1; c <= copies; c++)
+            {
+                book.Copies.Add(new Copy
+                {
+                    Id = $"LUMS-{code}-{c:000}",
+                    Shelf = shelf,
+                    Status = CopyStatus.SanSang,
+                    AddedAt = createdAt
+                });
+            }
+
+            result.Add(book);
+        }
+
+        return result;
+    }
+
+    /// <summary>Nối chữ số kiểm ISBN-13 (trọng số 1,3 xen kẽ) vào 12 chữ số đầu; trả dạng 978-604-90-NNNN-K.</summary>
+    private static string Isbn13(string first12)
+    {
+        var sum = 0;
+        for (var k = 0; k < 12; k++)
+        {
+            sum += (first12[k] - '0') * (k % 2 == 0 ? 1 : 3);
+        }
+
+        var check = (10 - sum % 10) % 10;
+        return $"{first12[..3]}-{first12[3..6]}-{first12[6..8]}-{first12[8..12]}-{check}";
     }
 }
