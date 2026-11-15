@@ -141,6 +141,58 @@ public class BookService : IBookService
         return created;
     }
 
+    public async Task UpdateBookAsync(int id, UpdateBookRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var title = Required(request.Title, "Tên sách", 200);
+        var author = Required(request.Author, "Tác giả", 150);
+        var category = Required(request.Category, "Thể loại", 100);
+        var shelf = Required(request.ShelfLocation, "Vị trí kệ", 20);
+        var isbn = Required(request.Isbn, "Mã ISBN", 20);
+        var isbnCode = NormalizeIsbn(isbn);
+
+        var book = await _books.GetWithCopiesForUpdateAsync(id, ct)
+                   ?? throw new NotFoundException("Không tìm thấy đầu sách (có thể đã bị gỡ khỏi kho).");
+
+        // Giữ ISBN cũ hoặc đổi sang ISBN chưa ai dùng; không được trùng đầu sách khác.
+        var owner = await _books.GetByIsbnAsync(isbnCode, ct);
+        if (owner is not null && owner.Id != book.Id)
+        {
+            throw new DuplicateIsbnException(isbn, owner.Id);
+        }
+
+        // Bản sao đang nằm ở kệ mặc định cũ thì chuyển theo kệ mới; bản sao đã được xếp kệ riêng giữ nguyên.
+        var oldShelf = book.DefaultShelf;
+        foreach (var copy in book.Copies.Where(c => c.Shelf == oldShelf))
+        {
+            copy.Shelf = shelf;
+        }
+
+        book.Title = title;
+        book.Author = author;
+        book.Category = category;
+        book.Isbn = isbn;
+        book.DefaultShelf = shelf;
+
+        await _uow.SaveChangesAsync(ct);
+    }
+
+    public async Task<MergeSuggestionDto?> GetMergeSuggestionAsync(string isbn, CancellationToken ct = default)
+    {
+        var isbnCode = NormalizeIsbn(Required(isbn, "Mã ISBN", 20));
+
+        var match = await _books.GetByIsbnAsync(isbnCode, ct);
+        if (match is null)
+        {
+            return null;
+        }
+
+        // GetByIsbnAsync không nạp bản sao; lấy lại kèm Copies để đếm.
+        var book = await _books.GetWithCopiesAsync(match.Id, ct) ?? match;
+        return new MergeSuggestionDto(book.Id, book.Title, book.Isbn, book.Copies.Count);
+    }
+
     /// <summary>
     /// Bỏ dấu gạch ngang/khoảng trắng, viết hoa; còn lại 10–13 ký tự số (ký tự cuối được là X với ISBN-10).
     /// Kết quả dùng làm phần {mã} trong mã bản sao LUMS-{mã}-{i:000}.
@@ -208,7 +260,7 @@ public class BookService : IBookService
         var available = CountAvailable(b);
         return new BookSummaryDto(
             b.Id, b.Title, b.Author, b.Category, b.DefaultShelf, b.CoverImage,
-            available, b.Copies.Count, LevelOf(available));
+            available, b.Copies.Count, LevelOf(available), b.Isbn);
     }
 
     private static int CountAvailable(BookTitle b) => b.Copies.Count(c => c.Status == CopyStatus.SanSang);

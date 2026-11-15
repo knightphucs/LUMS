@@ -47,7 +47,8 @@ public record BookSummaryDto(
     string? CoverImage,
     int AvailableCopies,
     int TotalCopies,
-    AvailabilityLevel Availability);
+    AvailabilityLevel Availability,
+    string Isbn = "");
 
 public record CopyDto(string Id, string Shelf, CopyStatus Status);
 
@@ -68,18 +69,33 @@ public record BookDetailDto(
 public record BookFilterOptionsDto(IReadOnlyList<string> Categories, IReadOnlyList<string> Authors);
 
 /// <summary>
-/// Dữ liệu thủ thư nhập khi thêm đầu sách mới (FR-02-03).
-/// ShelfLocation được gán cho cả BookTitle.DefaultShelf lẫn Copy.Shelf của từng bản sao.
+/// Dữ liệu thủ thư nhập khi sửa thông tin đầu sách (FR-02-03).
+/// ShelfLocation được gán cho BookTitle.DefaultShelf (và các bản sao đang nằm ở kệ mặc định cũ).
 /// Là class (không phải positional record) để MVC model binding đọc được từ form.
 /// </summary>
-public class CreateBookRequest
+public class UpdateBookRequest
 {
-    public const int MaxCopyCount = 100;
-
     public string Title { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string Isbn { get; set; } = string.Empty;
     public string ShelfLocation { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Dữ liệu thủ thư nhập khi thêm đầu sách mới (FR-02-03): các trường của UpdateBookRequest + CopyCount.
+/// ShelfLocation được gán cho cả BookTitle.DefaultShelf lẫn Copy.Shelf của từng bản sao.
+/// Là class (không phải positional record) để MVC model binding đọc được từ form.
+/// </summary>
+public class CreateBookRequest : UpdateBookRequest
+{
+    public const int MaxCopyCount = 100;
+
     public int CopyCount { get; set; }
 }
+
+/// <summary>
+/// Gợi ý gộp khi thêm sách trùng ISBN: thông tin đầu sách đã có để UI hỏi
+/// "ISBN đã có: &lt;Title&gt; (&lt;CopyCount&gt; bản sao). Gộp thêm bản sao?".
+/// </summary>
+public record MergeSuggestionDto(int BookId, string Title, string Isbn, int CopyCount);
