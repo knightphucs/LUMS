@@ -26,14 +26,15 @@
 
 @if (Model.Result.Items.Count == 0)
 {
-    <div class="empty">
+    <div class="empty" role="status">
         <p><strong>Không tìm thấy sách phù hợp.</strong></p>
-        <p>Hãy thử từ khóa ngắn hơn hoặc <a asp-controller="Books" asp-action="Index">xóa bộ lọc</a>.</p>
+        <p>Thử từ khóa khác hoặc bỏ bớt bộ lọc</p>
+        <a class="btn btn--outline-strong empty__action" asp-controller="Books" asp-action="Index">Xóa bộ lọc</a>
     </div>
 }
 else
 {
-    <div class="book-grid">
+    <div class="book-grid book-grid--opac">
         @foreach (var book in Model.Result.Items)
         {
             <partial name="_BookCard" model="book" />
