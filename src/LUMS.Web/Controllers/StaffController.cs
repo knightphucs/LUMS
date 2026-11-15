@@ -13,6 +13,11 @@ public class StaffController : Controller
 {
     private const int BooksPageSize = 10;
 
+    // Khoá ViewData mà _BookDialog.cshtml đọc để mở lại hộp thoại với dữ liệu đã nhập.
+    public const string BookFormKey = "BookForm";
+    public const string BookFormIdKey = "BookFormId";
+    public const string MergeSuggestionKey = "MergeSuggestion";
+
     private readonly IBookService _books;
 
     public StaffController(IBookService books)
@@ -22,36 +27,8 @@ public class StaffController : Controller
 
     // GET /Staff/Books?keyword=&category=&status=&pageNumber=
     public async Task<IActionResult> Books(
-        string? keyword, string? category, string? status, int pageNumber = 1, CancellationToken ct = default)
-    {
-        var result = await _books.SearchAsync(new BookSearchCriteria
-        {
-            Keyword = keyword,
-            Category = category,
-            InStock = BookSearchViewModel.ToInStock(status),
-            Page = pageNumber,
-            PageSize = BooksPageSize
-        }, ct);
-
-        var model = new BookSearchViewModel
-        {
-            Keyword = keyword,
-            Category = category,
-            Status = status,
-            Result = result,
-            Pager = new PagerViewModel(
-                result.Page,
-                result.TotalPages,
-                "/Staff/Books",
-                new Dictionary<string, object?>
-                {
-                    ["keyword"] = keyword,
-                    ["category"] = category,
-                    ["status"] = status
-                })
-        };
-        return View(model);
-    }
+        string? keyword, string? category, string? status, int pageNumber = 1, CancellationToken ct = default) =>
+        View(await BuildBooksModelAsync(keyword, category, status, pageNumber, ct));
 
     // POST /Staff/CreateBook  (FR-02-03) — form gửi các trường của CreateBookRequest.
     [HttpPost]
@@ -63,11 +40,22 @@ public class StaffController : Controller
             TempData["Flash"] = $"Đã thêm đầu sách #{id} \"{request.Title.Trim()}\" với {request.CopyCount} bản sao.";
             return RedirectToAction(nameof(Books));
         }
+        catch (DuplicateIsbnException ex)
+        {
+            // Trùng ISBN → hỏi gộp thêm bản sao vào đầu sách cũ (POST MergeCopies).
+            var suggestion = await _books.GetMergeSuggestionAsync(request.Isbn, ct);
+            if (suggestion is null)
+            {
+                return await BookFormErrorAsync(request, null, ex, ct);
+            }
+
+            ViewData[BookFormKey] = request;
+            ViewData[MergeSuggestionKey] = suggestion;
+            return View(nameof(Books), await BuildBooksModelAsync(null, null, null, 1, ct));
+        }
         catch (DomainException ex)
         {
-            // Gồm cả DuplicateIsbnException: thông báo đã chứa mã đầu sách cũ.
-            TempData["Error"] = ex.Message;
-            return RedirectToAction(nameof(Books));
+            return await BookFormErrorAsync(request, null, ex, ct);
         }
     }
 
@@ -80,7 +68,11 @@ public class StaffController : Controller
             await _books.UpdateBookAsync(id, request, ct);
             TempData["Flash"] = $"Đã cập nhật đầu sách #{id} \"{request.Title.Trim()}\".";
         }
-        catch (Exception ex) when (ex is DomainException or NotFoundException)
+        catch (DomainException ex)
+        {
+            return await BookFormErrorAsync(request, id, ex, ct);
+        }
+        catch (NotFoundException ex)
         {
             TempData["Error"] = ex.Message;
         }
@@ -103,5 +95,66 @@ public class StaffController : Controller
         }
 
         return RedirectToAction(nameof(Books));
+    }
+
+    /// <summary>
+    /// Trả lại trang danh sách và mở lại hộp thoại với dữ liệu vừa nhập; lỗi hiện dưới ô liên quan
+    /// (hoặc ở đầu hộp thoại nếu không xác định được ô).
+    /// </summary>
+    private async Task<IActionResult> BookFormErrorAsync(UpdateBookRequest request, int? id, DomainException ex, CancellationToken ct)
+    {
+        ModelState.Clear(); // bỏ lỗi binding mặc định (tiếng Anh), chỉ giữ thông báo của service
+        ModelState.AddModelError(FieldOf(ex), ex.Message);
+        ViewData[BookFormKey] = request;
+        ViewData[BookFormIdKey] = id;
+        return View(nameof(Books), await BuildBooksModelAsync(null, null, null, 1, ct));
+    }
+
+    /// <summary>Đoán ô bị lỗi từ thông báo của BookService (các thông báo đều mở đầu bằng tên trường).</summary>
+    private static string FieldOf(DomainException ex)
+    {
+        if (ex is DuplicateIsbnException) return nameof(CreateBookRequest.Isbn);
+
+        var map = new (string Prefix, string Field)[]
+        {
+            ("Tên sách", nameof(CreateBookRequest.Title)),
+            ("Tác giả", nameof(CreateBookRequest.Author)),
+            ("Thể loại", nameof(CreateBookRequest.Category)),
+            ("Vị trí kệ", nameof(CreateBookRequest.ShelfLocation)),
+            ("Mã ISBN", nameof(CreateBookRequest.Isbn)),
+            ("Số lượng bản sao", nameof(CreateBookRequest.CopyCount))
+        };
+        return map.FirstOrDefault(m => ex.Message.StartsWith(m.Prefix, StringComparison.Ordinal)).Field ?? string.Empty;
+    }
+
+    private async Task<BookSearchViewModel> BuildBooksModelAsync(
+        string? keyword, string? category, string? status, int pageNumber, CancellationToken ct)
+    {
+        var result = await _books.SearchAsync(new BookSearchCriteria
+        {
+            Keyword = keyword,
+            Category = category,
+            InStock = BookSearchViewModel.ToInStock(status),
+            Page = pageNumber,
+            PageSize = BooksPageSize
+        }, ct);
+
+        return new BookSearchViewModel
+        {
+            Keyword = keyword,
+            Category = category,
+            Status = status,
+            Result = result,
+            Pager = new PagerViewModel(
+                result.Page,
+                result.TotalPages,
+                "/Staff/Books",
+                new Dictionary<string, object?>
+                {
+                    ["keyword"] = keyword,
+                    ["category"] = category,
+                    ["status"] = status
+                })
+        };
     }
 }

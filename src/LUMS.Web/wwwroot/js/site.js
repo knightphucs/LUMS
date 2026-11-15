@@ -117,4 +117,56 @@
     document.querySelectorAll('form[data-toast-on-submit]').forEach(function (form) {
         form.addEventListener('submit', function () { toast(form.getAttribute('data-toast-on-submit')); });
     });
+
+    // Hộp thoại Thêm/Sửa sách (Staff/Books): cùng một form, đổi tiêu đề + action theo chế độ.
+    var bookDialog = document.getElementById('book-dialog');
+    if (bookDialog) {
+        var bookForm = bookDialog.querySelector('form');
+        var bookFields = ['Title', 'Author', 'Category', 'Isbn', 'ShelfLocation'];
+
+        var setBookMode = function (edit) {
+            document.getElementById('book-dialog-title').textContent = edit ? 'Sửa thông tin sách' : 'Thêm sách mới';
+            bookForm.action = bookForm.getAttribute(edit ? 'data-update-action' : 'data-create-action');
+            var copies = bookForm.elements.CopyCount;
+            copies.disabled = edit;
+            copies.closest('[data-create-only]').hidden = edit;
+        };
+
+        var resetBookForm = function () {
+            bookDialog.querySelectorAll('.field__error').forEach(function (el) { el.textContent = ''; });
+            var formError = bookDialog.querySelector('[data-form-error]');
+            formError.textContent = '';
+            formError.hidden = true;
+            bookForm.reset();
+            bookFields.concat(['id', 'CopyCount']).forEach(function (name) { bookForm.elements[name].value = ''; });
+        };
+
+        document.addEventListener('click', function (e) {
+            var create = e.target.closest('[data-create-book]');
+            var edit = e.target.closest('[data-edit-book]');
+            if (!create && !edit) { return; }
+
+            resetBookForm();
+            setBookMode(!!edit);
+            if (edit) {
+                var values = [edit.dataset.title, edit.dataset.author, edit.dataset.category, edit.dataset.isbn, edit.dataset.shelf];
+                bookFields.forEach(function (name, i) { bookForm.elements[name].value = values[i] || ''; });
+                bookForm.elements.id.value = edit.getAttribute('data-edit-book');
+            }
+            if (typeof bookDialog.showModal === 'function') { bookDialog.showModal(); }
+        });
+    }
+
+    // Hủy ở hộp gộp ISBN: mở lại form Thêm sách (vẫn giữ dữ liệu đã nhập).
+    document.querySelectorAll('[data-reopen-dialog]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var dialog = document.getElementById(btn.getAttribute('data-reopen-dialog'));
+            if (dialog && typeof dialog.showModal === 'function') { dialog.showModal(); }
+        });
+    });
+
+    // Server trả lại trang kèm lỗi / gợi ý gộp → tự mở lại hộp thoại tương ứng.
+    document.querySelectorAll('dialog[data-open-on-load]').forEach(function (dialog) {
+        if (typeof dialog.showModal === 'function') { dialog.showModal(); }
+    });
 })();

@@ -22,7 +22,7 @@
 
     <span class="toolbar__spacer"></span>
     <button type="button" class="btn btn--outline-muted" data-toast="Xuất Excel (UC-02-05) chưa nằm trong phạm vi bản demo.">Xuất Excel</button>
-    <button type="button" class="btn btn--primary" data-open-dialog="book-dialog">+ Thêm sách mới</button>
+    <button type="button" class="btn btn--primary" data-create-book>+ Thêm sách mới</button>
 </form>
 
 <div class="table-wrap">
@@ -36,6 +36,7 @@
                 <th>Vị trí kệ</th>
                 <th>Bản sao</th>
                 <th>Tình trạng</th>
+                <th>Hành động</th>
             </tr>
         </thead>
         <tbody>
@@ -49,11 +50,16 @@
                     <td>@b.Shelf</td>
                     <td>@b.AvailableCopies/@b.TotalCopies</td>
                     <td><span class="badge @DisplayText.AvailabilityBadge(b.Availability)">@DisplayText.AvailabilityName(b.Availability)</span></td>
+                    <td class="table__actions">
+                        <button type="button" class="btn btn--sm btn--outline-muted"
+                                data-edit-book="@b.Id" data-title="@b.Title" data-author="@b.Author"
+                                data-category="@b.Category" data-isbn="@b.Isbn" data-shelf="@b.Shelf">Sửa</button>
+                    </td>
                 </tr>
             }
             @if (Model.Result.Items.Count == 0)
             {
-                <tr><td colspan="7" class="muted center">Không có sách phù hợp.</td></tr>
+                <tr><td colspan="8" class="muted center">Không có sách phù hợp.</td></tr>
             }
         </tbody>
     </table>

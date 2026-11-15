@@ -1,16 +1,79 @@
-@* Hộp thoại Thêm/Sửa sách — chỉ trang Quản lý kho sách dùng nên đặt cạnh Books.cshtml, không đưa vào Shared. *@
-<dialog id="book-dialog" class="dialog" aria-labelledby="book-dialog-title">
-    <form method="dialog" data-toast-on-submit="Bản demo giao diện: lưu sách (UC-02-03) sẽ được nối với BookService ở giai đoạn sau.">
-        <h2 id="book-dialog-title">Thêm / Sửa thông tin sách</h2>
-        <div class="field"><label for="f-title">Tên sách</label><input id="f-title" type="text" required /></div>
-        <div class="field"><label for="f-author">Tác giả</label><input id="f-author" type="text" required /></div>
-        <div class="field"><label for="f-cat">Thể loại</label><input id="f-cat" type="text" /></div>
-        <div class="field"><label for="f-isbn">Mã ISBN</label><input id="f-isbn" type="text" /></div>
-        <div class="field"><label for="f-shelf">Vị trí kệ (Shelf location)</label><input id="f-shelf" type="text" /></div>
-        <div class="field"><label for="f-copies">Số lượng bản sao (Copies)</label><input id="f-copies" type="number" min="1" /></div>
+@* Hộp thoại Thêm/Sửa sách — chỉ trang Quản lý kho sách dùng nên đặt cạnh Books.cshtml, không đưa vào Shared.
+   Khi StaffController trả lại View vì lỗi, ViewData mang dữ liệu đã nhập + ModelState mang thông báo lỗi
+   để hộp thoại tự mở lại (data-open-on-load) mà không mất dữ liệu. *@
+@using LUMS.Web.Controllers
+@{
+    var form = ViewData[StaffController.BookFormKey] as UpdateBookRequest;
+    var editId = ViewData[StaffController.BookFormIdKey] as int?;
+    var merge = ViewData[StaffController.MergeSuggestionKey] as MergeSuggestionDto;
+    var isEdit = editId is not null;
+    var copyCount = (form as CreateBookRequest)?.CopyCount;
+    var reopen = form is not null && merge is null;
+
+    string? Err(string key) =>
+        ViewData.ModelState.TryGetValue(key, out var entry) ? entry.Errors.FirstOrDefault()?.ErrorMessage : null;
+    var formError = Err(string.Empty);
+}
+<dialog id="book-dialog" class="dialog" aria-labelledby="book-dialog-title" data-open-on-load="@(reopen ? "true" : null)">
+    <form method="post" asp-controller="Staff" asp-action="@(isEdit ? "UpdateBook" : "CreateBook")"
+          data-create-action="@Url.Action("CreateBook", "Staff")" data-update-action="@Url.Action("UpdateBook", "Staff")">
+        <h2 id="book-dialog-title">@(isEdit ? "Sửa thông tin sách" : "Thêm sách mới")</h2>
+        <div class="alert alert--danger" role="alert" data-form-error hidden="@(formError is null)">@formError</div>
+        <input type="hidden" name="id" value="@editId" />
+
+        <div class="field">
+            <label for="f-title">Tên sách</label>
+            <input id="f-title" name="Title" type="text" required maxlength="200" value="@form?.Title" />
+            <span class="field__error">@Err("Title")</span>
+        </div>
+        <div class="field">
+            <label for="f-author">Tác giả</label>
+            <input id="f-author" name="Author" type="text" required maxlength="150" value="@form?.Author" />
+            <span class="field__error">@Err("Author")</span>
+        </div>
+        <div class="field">
+            <label for="f-cat">Thể loại</label>
+            <input id="f-cat" name="Category" type="text" maxlength="100" value="@form?.Category" />
+            <span class="field__error">@Err("Category")</span>
+        </div>
+        <div class="field">
+            <label for="f-isbn">Mã ISBN</label>
+            <input id="f-isbn" name="Isbn" type="text" required maxlength="20" value="@form?.Isbn" />
+            <span class="field__error">@Err("Isbn")</span>
+        </div>
+        <div class="field">
+            <label for="f-shelf">Vị trí kệ (Shelf location)</label>
+            <input id="f-shelf" name="ShelfLocation" type="text" required maxlength="20" value="@form?.ShelfLocation" />
+            <span class="field__error">@Err("ShelfLocation")</span>
+        </div>
+        <div class="field" data-create-only hidden="@isEdit">
+            <label for="f-copies">Số lượng bản sao (Copies)</label>
+            <input id="f-copies" name="CopyCount" type="number" required min="1" max="@CreateBookRequest.MaxCopyCount"
+                   value="@(copyCount > 0 ? copyCount : null)" disabled="@isEdit" />
+            <span class="field__error">@Err("CopyCount")</span>
+        </div>
         <div class="dialog__actions">
             <button type="submit" class="btn btn--primary">Lưu (Save)</button>
             <button type="button" class="btn btn--outline-muted" data-close-dialog>Hủy</button>
         </div>
     </form>
 </dialog>
+
+@if (merge is not null)
+{
+    var mergeCount = copyCount ?? 1;
+    <dialog id="merge-dialog" class="dialog" aria-labelledby="merge-dialog-title" data-open-on-load="true">
+        <form method="post" asp-controller="Staff" asp-action="MergeCopies">
+            <h2 id="merge-dialog-title">Trùng mã ISBN</h2>
+            <p>ISBN đã có: <strong>@merge.Title</strong> (@merge.CopyCount bản sao). Gộp thêm bản sao?</p>
+            <p class="muted">Sẽ thêm @mergeCount bản sao vào đầu sách #@merge.BookId (ISBN @merge.Isbn).</p>
+            <input type="hidden" name="bookId" value="@merge.BookId" />
+            <input type="hidden" name="copyCount" value="@mergeCount" />
+            <div class="dialog__actions">
+                <button type="submit" class="btn btn--primary">Gộp</button>
+                @* Hủy: đóng hộp gộp, mở lại form Thêm sách với dữ liệu đã nhập để sửa ISBN nếu cần. *@
+                <button type="button" class="btn btn--outline-muted" data-close-dialog data-reopen-dialog="book-dialog">Hủy</button>
+            </div>
+        </form>
+    </dialog>
+}
