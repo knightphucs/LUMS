@@ -104,7 +104,11 @@ public class StaffController : Controller
     private async Task<IActionResult> BookFormErrorAsync(UpdateBookRequest request, int? id, DomainException ex, CancellationToken ct)
     {
         ModelState.Clear(); // bỏ lỗi binding mặc định (tiếng Anh), chỉ giữ thông báo của service
-        ModelState.AddModelError(FieldOf(ex), ex.Message);
+        // Khi sửa, gợi ý "thêm bản sao" của DuplicateIsbnException không phù hợp → báo ngắn gọn.
+        var message = id is not null && ex is DuplicateIsbnException dup
+            ? $"ISBN {dup.Isbn} đã thuộc đầu sách #{dup.ExistingBookId}; không thể đổi sang ISBN của đầu sách khác."
+            : ex.Message;
+        ModelState.AddModelError(FieldOf(ex), message);
         ViewData[BookFormKey] = request;
         ViewData[BookFormIdKey] = id;
         return View(nameof(Books), await BuildBooksModelAsync(null, null, null, 1, ct));
