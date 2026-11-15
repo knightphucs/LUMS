@@ -166,7 +166,7 @@
     });
 
     // Server trả lại trang kèm lỗi / gợi ý gộp → tự mở lại hộp thoại tương ứng.
-    document.querySelectorAll('dialog[data-open-on-load]').forEach(function (dialog) {
+    document.querySelectorAll('dialog[data-open-on-load="true"]').forEach(function (dialog) {
         if (typeof dialog.showModal === 'function') { dialog.showModal(); }
     });
 })();
