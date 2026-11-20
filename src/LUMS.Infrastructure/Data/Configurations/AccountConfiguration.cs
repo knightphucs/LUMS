@@ -20,6 +20,8 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         b.Property(x => x.ReaderType).HasColumnName("LoaiDocGia").HasConversion<string>().HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.Status).HasColumnName("TrangThai").HasConversion<string>().HasMaxLength(20).IsUnicode(false);
         b.Property(x => x.CreatedAt).HasColumnName("NgayTao");
+        b.Property(x => x.FailedLoginCount).HasColumnName("SoLanSaiMatKhau");
+        b.Property(x => x.LockoutEnd).HasColumnName("KhoaDangNhapDen");
 
         b.HasIndex(x => x.Email).IsUnique();
         b.HasIndex(x => x.Code).IsUnique();
