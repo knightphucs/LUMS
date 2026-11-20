@@ -14,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IPolicyService, PolicyService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccessLogService, AccessLogService>();
 
         return services;
     }
