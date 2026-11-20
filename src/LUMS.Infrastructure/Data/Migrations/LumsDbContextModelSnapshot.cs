@@ -49,11 +49,19 @@ namespace LUMS.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("Email");
 
+                    b.Property<int>("FailedLoginCount")
+                        .HasColumnType("int")
+                        .HasColumnName("SoLanSaiMatKhau");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("HoTen");
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("KhoaDangNhapDen");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
