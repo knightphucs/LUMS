@@ -5,6 +5,7 @@ using LUMS.Infrastructure;
 using LUMS.Infrastructure.Data;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +86,27 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+
+// FR-00-06: trang cần đăng nhập (hoặc trang trả về khi đã đăng nhập) không được lưu vào cache trình duyệt,
+// để sau khi đăng xuất bấm Back không còn thấy lại dữ liệu cũ (no-store cũng chặn back/forward cache).
+app.Use(async (context, next) =>
+{
+    var requiresAuth = context.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() is not null;
+    if (requiresAuth || context.User.Identity?.IsAuthenticated == true)
+    {
+        context.Response.OnStarting(() =>
+        {
+            var headers = context.Response.Headers;
+            headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+            headers.Pragma = "no-cache";
+            headers.Expires = "0";
+            return Task.CompletedTask;
+        });
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 
 app.Use(async (context, next) =>
