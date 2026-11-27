@@ -1,3 +1,4 @@
+
 @model LoginViewModel
 @{
     ViewData["Title"] = "Đăng nhập";
@@ -9,7 +10,21 @@
     <form method="post" asp-controller="Account" asp-action="Login" novalidate>
         <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
 
-        <partial name="_FormErrors" />
+        @if (ViewData["IsLockedOut"] is true)
+        {
+            <div class="alert alert--danger" role="alert">
+                <strong>Tài khoản tạm thời bị khóa.</strong>
+                <div>
+                    Bạn đã nhập sai mật khẩu quá 5 lần liên tiếp.
+                    Vui lòng thử lại sau
+                    <strong>@ViewData["LockoutMinutesRemaining"] phút</strong>.
+                </div>
+            </div>
+        }
+        else
+        {
+            <partial name="_FormErrors" />
+        }
 
         <div class="field">
             <label asp-for="Identifier"></label>
