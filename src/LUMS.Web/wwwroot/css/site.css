@@ -432,6 +432,13 @@ hr { border: 0; border-top: 1px solid var(--c-border); margin: var(--s2) 0; }
 .status-page h1 { font-size: 22px; font-weight: 600; margin-top: var(--s1); }
 .status-page p { color: var(--c-muted); font-size: 13px; }
 .status-page .btn { margin-top: var(--s1); min-width: 180px; }
+.status-page__actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--s2);
+    width: 100%;
+}
 
 .footer { border-top: 1px solid var(--c-border); background: var(--c-surface); }
 .footer__inner { max-width: 1280px; margin: 0 auto; padding: var(--s2) var(--s3); font-size: 11px; color: var(--c-muted); }

@@ -1,4 +1,5 @@
 @model ErrorViewModel
+@using LUMS.Web.Security
 
 <section class="status-page">
     <div class="status-page__code" aria-hidden="true">@Model.Code</div>
@@ -8,5 +9,20 @@
     {
         <p class="muted">Mã yêu cầu: <code>@Model.RequestId</code></p>
     }
-    <a class="btn btn--primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+
+    <div class="status-page__actions">
+        @if (Model.Code == 403)
+        {
+            <a class="btn btn--primary"
+               href="@RoleHome.UrlFor(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)">
+                Về trang của bạn
+            </a>
+        }
+
+        <a class="btn btn--primary"
+           asp-controller="Home"
+           asp-action="Index">
+            Về trang chủ
+        </a>
+    </div>
 </section>

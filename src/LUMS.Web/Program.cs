@@ -1,9 +1,12 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using LUMS.Core;
 using LUMS.Core.Interfaces.Common;
+using LUMS.Core.Interfaces.Services;
 using LUMS.Infrastructure;
 using LUMS.Infrastructure.Data;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,16 +46,18 @@ builder.Services
             context.Response.Redirect(context.RedirectUri);
             return Task.CompletedTask;
         };
-        options.Events.OnRedirectToAccessDenied = context =>
+        options.Events.OnRedirectToAccessDenied = async context =>
         {
+            // FR-00-07: đã đăng nhập nhưng sai vai trò → ghi "Truy cập trái phép" vào Nhật ký hệ thống (cả trang web lẫn /api).
+            await LogUnauthorizedAccessAsync(context);
+
             if (context.Request.Path.StartsWithSegments("/api"))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return Task.CompletedTask;
+                return;
             }
 
             context.Response.Redirect(context.RedirectUri);
-            return Task.CompletedTask;
         };
     });
 
@@ -155,3 +160,25 @@ if (app.Configuration.GetValue<bool>("Database:AutoCreateAndSeed"))
 }
 
 app.Run();
+
+// Lỗi khi ghi log không được làm hỏng trang 403: chỉ ghi cảnh báo rồi trả 403 như bình thường.
+static async Task LogUnauthorizedAccessAsync(RedirectContext<CookieAuthenticationOptions> context)
+{
+    var http = context.HttpContext;
+    if (!int.TryParse(http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var accountId))
+    {
+        return;
+    }
+
+    var path = $"{http.Request.PathBase}{http.Request.Path}{http.Request.QueryString}";
+    try
+    {
+        await http.RequestServices.GetRequiredService<IAccessLogService>()
+            .LogUnauthorizedAccessAsync(accountId, path, http.RequestAborted);
+    }
+    catch (Exception ex)
+    {
+        http.RequestServices.GetRequiredService<ILogger<Program>>()
+            .LogWarning(ex, "Không ghi được nhật ký truy cập trái phép cho tài khoản {AccountId} tại {Path}", accountId, path);
+    }
+}
