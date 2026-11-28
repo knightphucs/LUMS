@@ -50,7 +50,7 @@ public class PolicyService : IPolicyService
         await _logs.AddAsync(new SystemLog
         {
             AccountId = adminId,
-            Action = $"Cập nhật cấu hình: Số ngày mượn tối đa = {request.MaxLoanDays}; Số sách mượn cùng lúc = {request.MaxBooksPerReader}",
+            Action = $"Cập nhật cấu hình: Số ngày mượn tối đa = {request.MaxLoanDays}; Số sách mượn cùng lúc = {request.MaxBooksPerReader}; Số lượt đặt trước tối đa = {request.MaxReservations}; Mức phạt mỗi ngày = {request.FinePerDay}",
             RelatedObject = "PolicyConfiguration",
             Timestamp = now
         }, ct);

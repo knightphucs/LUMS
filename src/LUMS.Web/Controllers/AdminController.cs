@@ -31,6 +31,7 @@ public class AdminController : Controller
             {
                 MaxLoanDays = data.Policy.MaxLoanDays,
                 MaxBooksPerReader = data.Policy.MaxBooksPerReader,
+                MaxReservations = data.Policy.MaxReservations,
                 FinePerDay = data.Policy.FinePerDay
             }
         };
@@ -39,15 +40,20 @@ public class AdminController : Controller
 
     // POST /Admin/SavePolicy
     [HttpPost]
-    public async Task<IActionResult> SavePolicy([Bind(Prefix = "Policy")] PolicyForm policy, CancellationToken ct)
+    public async Task<IActionResult> SavePolicy(
+        [Bind(Prefix = "Policy")] PolicyForm policy,
+        CancellationToken ct)
     {
         if (ModelState.IsValid)
         {
             try
             {
-                var current = await _policies.GetCurrentAsync(ct);
                 await _policies.UpdateAsync(
-                    new UpdatePolicyRequest(policy.MaxLoanDays, policy.MaxBooksPerReader, current.MaxReservations, policy.FinePerDay),
+                    new UpdatePolicyRequest(
+                        policy.MaxLoanDays,
+                        policy.MaxBooksPerReader,
+                        policy.MaxReservations,
+                        policy.FinePerDay),
                     User.GetAccountId(),
                     ct);
 
@@ -65,6 +71,7 @@ public class AdminController : Controller
             Data = await _dashboard.GetAsync(ct),
             Policy = policy
         };
+
         return View(nameof(Dashboard), model);
     }
 }
