@@ -1,3 +1,4 @@
+
 using System.Security.Claims;
 using LUMS.Core.Interfaces.Services;
 using LUMS.Web.Models;
@@ -41,9 +42,19 @@ public class AccountController : Controller
         }
 
         var result = await _auth.LoginAsync(model.Identifier, model.Password, ct);
+
         if (!result.Succeeded || result.User is null)
         {
-            ModelState.AddModelError(string.Empty, result.Error ?? "Đăng nhập không thành công.");
+            if (result.IsLockedOut)
+            {
+                ViewData["IsLockedOut"] = true;
+                ViewData["LockoutMinutesRemaining"] = result.LockoutMinutesRemaining;
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, result.Error ?? "Đăng nhập không thành công.");
+            }
+
             return LoginView(model);
         }
 
