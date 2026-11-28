@@ -14,6 +14,11 @@ public class PolicyForm
     [Display(Name = "Số sách mượn cùng lúc")]
     public int MaxBooksPerReader { get; set; }
 
+    [Required(ErrorMessage = "Nhập số lượt đặt trước tối đa.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Số lượt đặt trước phải lớn hơn 0.")]
+    [Display(Name = "Số lượt đặt trước tối đa")]
+    public int MaxReservations { get; set; }
+
     [Required(ErrorMessage = "Nhập mức phạt mỗi ngày.")]
     [Range(0, 1_000_000, ErrorMessage = "Mức phạt từ 0 đến 1.000.000 đồng.")]
     [Display(Name = "Mức phạt / ngày (VND)")]

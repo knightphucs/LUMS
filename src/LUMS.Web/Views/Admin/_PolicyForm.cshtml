@@ -13,17 +13,26 @@
                 <input asp-for="Policy.MaxLoanDays" type="number" min="1" max="90" inputmode="numeric" />
                 <span class="field__error" asp-validation-for="Policy.MaxLoanDays"></span>
             </div>
+
             <div class="field">
                 <label asp-for="Policy.MaxBooksPerReader"></label>
                 <input asp-for="Policy.MaxBooksPerReader" type="number" min="1" max="20" inputmode="numeric" />
                 <span class="field__error" asp-validation-for="Policy.MaxBooksPerReader"></span>
             </div>
+
+            <div class="field">
+                <label asp-for="Policy.MaxReservations"></label>
+                <input asp-for="Policy.MaxReservations" type="number" min="1" step="1" inputmode="numeric" />
+                <span class="field__error" asp-validation-for="Policy.MaxReservations"></span>
+            </div>
+
             <div class="field">
                 <label asp-for="Policy.FinePerDay"></label>
                 <input asp-for="Policy.FinePerDay" type="number" min="0" step="500" inputmode="numeric" />
                 <span class="field__error" asp-validation-for="Policy.FinePerDay"></span>
             </div>
         </div>
+
         <button type="submit" class="btn btn--primary">Lưu cấu hình</button>
     </form>
 </section>
